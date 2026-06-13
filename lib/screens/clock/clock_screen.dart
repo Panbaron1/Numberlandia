@@ -51,14 +51,32 @@ class _ClockScreenState extends State<ClockScreen> {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(Gap.lg),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                ..._group(hh),
-                const _Colon(),
-                ..._group(mm),
-                const _Colon(),
-                ..._group(ss),
+                // Digital readout above the blocks
+                Text(
+                  '$hh:$mm:$ss',
+                  style: const TextStyle(
+                    fontSize: 64,
+                    fontWeight: FontWeight.w800,
+                    color: NColors.clock,
+                    letterSpacing: 4,
+                    height: 1,
+                  ),
+                ),
+                const SizedBox(height: Gap.xl),
+                // Numberblock clock
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ..._group(hh),
+                    const _Colon(),
+                    ..._group(mm),
+                    const _Colon(),
+                    ..._group(ss),
+                  ],
+                ),
               ],
             ),
           ),
