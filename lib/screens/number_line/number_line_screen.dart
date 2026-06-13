@@ -153,66 +153,6 @@ class _FactsPanel extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: Gap.sm),
-          // ── Fact chips ───────────────────────────────────────────────
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _Chip(
-                  label: 'One less',
-                  value: notifier.prevNum.toString(),
-                  color: NColors.numberLine),
-              const SizedBox(width: Gap.sm),
-              _Chip(
-                  label: notifier.isEven ? 'Even' : 'Odd',
-                  value: notifier.isEven ? 'Even' : 'Odd',
-                  color: NColors.machine),
-              const SizedBox(width: Gap.sm),
-              _Chip(
-                  label: 'One more',
-                  value: notifier.nextNum.toString(),
-                  color: NColors.million),
-            ],
-          ),
-          const SizedBox(height: Gap.sm),
-          // ── Drag hint ────────────────────────────────────────────────
-          const Text(
-            'Drag • Tap a number • Use buttons below',
-            style: TextStyle(
-                fontSize: 11, color: NColors.inkSoft, fontWeight: FontWeight.w400),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-
-  const _Chip({required this.label, required this.value, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(minWidth: 72),
-      padding: const EdgeInsets.symmetric(horizontal: Gap.sm, vertical: Gap.xs),
-      decoration: BoxDecoration(
-        color: color.withAlpha(22),
-        borderRadius: BorderRadius.circular(Radii.md),
-        border: Border.all(color: color.withAlpha(60), width: 1),
-      ),
-      child: Column(
-        children: [
-          Text(value,
-              style: TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.w800, color: color)),
-          const SizedBox(height: 2),
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 10, color: NColors.inkSoft, fontWeight: FontWeight.w500)),
         ],
       ),
     );
