@@ -196,69 +196,25 @@ class _Square extends StatelessWidget {
   }
 }
 
-/// Simple friendly face: two googly eyes + a small smile.
+/// The friendly face on a unit square — same look everywhere via
+/// [paintNumberFace].
 class _Face extends StatelessWidget {
   final double size;
   const _Face({required this.size});
 
   @override
   Widget build(BuildContext context) {
-    final eye = size * 0.22;
-    final pupil = eye * 0.5;
-    return Padding(
-      padding: EdgeInsets.only(top: size * 0.14),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _Eye(eye: eye, pupil: pupil),
-              SizedBox(width: size * 0.14),
-              _Eye(eye: eye, pupil: pupil),
-            ],
-          ),
-          SizedBox(height: size * 0.07),
-          Container(
-            width: size * 0.34,
-            height: size * 0.16,
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                    color: NColors.ink.withAlpha(160), width: size * 0.05),
-              ),
-              borderRadius:
-                  BorderRadius.vertical(bottom: Radius.circular(size * 0.2)),
-            ),
-          ),
-        ],
-      ),
-    );
+    return CustomPaint(size: Size(size, size), painter: _FacePainter());
   }
 }
 
-class _Eye extends StatelessWidget {
-  final double eye;
-  final double pupil;
-  const _Eye({required this.eye, required this.pupil});
+class _FacePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) =>
+      paintNumberFace(canvas, Offset.zero, size.width);
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: eye,
-      height: eye,
-      decoration: const BoxDecoration(
-          color: Colors.white, shape: BoxShape.circle),
-      child: Center(
-        child: Container(
-          width: pupil,
-          height: pupil,
-          decoration: const BoxDecoration(
-              color: NColors.ink, shape: BoxShape.circle),
-        ),
-      ),
-    );
-  }
+  bool shouldRepaint(_FacePainter old) => false;
 }
 
 /// Zero is special — a hollow ring with a face, not a block.
@@ -397,27 +353,29 @@ class NumBlockPainter extends CustomPainter {
       old.rows != rows || old.cols != cols || old.color != color;
 }
 
-/// Draws a simple friendly face (two eyes + smile) on a unit cell whose
-/// top-left corner is [cellTopLeft] and side length is [cell]. Shared by the
-/// numberblock painter and the times-tables array.
+/// The app's one canonical numberblock face — big white eyes with navy pupils
+/// and a warm brown smile. Drawn on a unit cell whose top-left corner is
+/// [cellTopLeft] and side length is [cell]. Used by every block (widget and
+/// canvas) and the times-tables array, so the face is identical everywhere.
 void paintNumberFace(Canvas canvas, Offset cellTopLeft, double cell) {
   final cx = cellTopLeft.dx + cell / 2;
-  final eyeY = cellTopLeft.dy + cell * 0.4;
-  final r = cell * 0.1;
+  final eyeY = cellTopLeft.dy + cell * 0.40;
+  final eyeR = cell * 0.16;
+  final pupilR = cell * 0.09;
   final white = Paint()..color = Colors.white;
-  final dark = Paint()..color = NColors.ink;
-  for (final dx in [-cell * 0.18, cell * 0.18]) {
-    canvas.drawCircle(Offset(cx + dx, eyeY), r, white);
-    canvas.drawCircle(Offset(cx + dx, eyeY), r * 0.5, dark);
+  final navy = Paint()..color = const Color(0xFF14213D);
+  for (final dx in [-cell * 0.20, cell * 0.20]) {
+    canvas.drawCircle(Offset(cx + dx, eyeY), eyeR, white);
+    canvas.drawCircle(Offset(cx + dx, eyeY), pupilR, navy);
   }
   final smile = Paint()
-    ..color = NColors.ink.withAlpha(160)
+    ..color = const Color(0xFF6B4A2B) // warm brown
     ..style = PaintingStyle.stroke
-    ..strokeWidth = cell * 0.05
+    ..strokeWidth = cell * 0.075
     ..strokeCap = StrokeCap.round;
   final rect = Rect.fromCircle(
-      center: Offset(cx, cellTopLeft.dy + cell * 0.55), radius: cell * 0.18);
-  canvas.drawArc(rect, 0.2, 2.74, false, smile);
+      center: Offset(cx, cellTopLeft.dy + cell * 0.55), radius: cell * 0.20);
+  canvas.drawArc(rect, 0.25, 2.64, false, smile);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

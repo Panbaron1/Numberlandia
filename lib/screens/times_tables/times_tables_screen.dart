@@ -3,6 +3,7 @@ import '../../services/audio_service.dart';
 import '../../services/haptics_service.dart';
 import '../../theme.dart';
 import '../../widgets/app_scaffold.dart';
+import '../../widgets/num_block.dart';
 import 'times_tables_notifier.dart';
 
 class TimesTablesScreen extends StatefulWidget {
@@ -203,7 +204,7 @@ class TimesArrayPainter extends CustomPainter {
 
     // Friendly face on the top-left cell when it's big enough to read.
     if (cell >= 22) {
-      _drawFace(canvas, Offset(ox, oy), cell);
+      paintNumberFace(canvas, Offset(ox, oy), cell);
     }
   }
 
@@ -211,27 +212,6 @@ class TimesArrayPainter extends CustomPainter {
     final byW = (size.width - (cols - 1) * gap) / cols;
     final byH = (size.height - (rows - 1) * gap) / rows;
     return byW < byH ? byW : byH;
-  }
-
-  void _drawFace(Canvas canvas, Offset cellTopLeft, double cell) {
-    final cx = cellTopLeft.dx + cell / 2;
-    final eyeY = cellTopLeft.dy + cell * 0.4;
-    final r = cell * 0.1;
-    final white = Paint()..color = Colors.white;
-    final dark = Paint()..color = NColors.ink;
-    for (final dx in [-cell * 0.18, cell * 0.18]) {
-      canvas.drawCircle(Offset(cx + dx, eyeY), r, white);
-      canvas.drawCircle(Offset(cx + dx, eyeY), r * 0.5, dark);
-    }
-    // Smile
-    final smile = Paint()
-      ..color = NColors.ink.withAlpha(160)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = cell * 0.05
-      ..strokeCap = StrokeCap.round;
-    final rect = Rect.fromCircle(
-        center: Offset(cx, cellTopLeft.dy + cell * 0.55), radius: cell * 0.18);
-    canvas.drawArc(rect, 0.2, 2.74, false, smile);
   }
 
   @override
