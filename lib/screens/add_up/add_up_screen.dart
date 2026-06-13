@@ -201,7 +201,7 @@ class _BlockPanel extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: ChunkyButton(
+                child: SoftButton(
                   color: color,
                   onTap: () => onStep!(-1),
                   height: 64,
@@ -211,7 +211,7 @@ class _BlockPanel extends StatelessWidget {
               ),
               const SizedBox(width: Gap.sm),
               Expanded(
-                child: ChunkyButton(
+                child: SoftButton(
                   color: color,
                   onTap: () => onStep!(1),
                   height: 64,

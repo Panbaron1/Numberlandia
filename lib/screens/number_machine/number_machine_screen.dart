@@ -216,10 +216,9 @@ class _RoundButtonState extends State<_RoundButton> {
 
   @override
   Widget build(BuildContext context) {
-    // Light pastel gradient surface (Spectroom aesthetic) with black glyphs.
-    final top = Color.lerp(widget.color, Colors.white, 0.72)!;
-    final bottom = Color.lerp(widget.color, Colors.white, 0.52)!;
-    final base = Color.lerp(widget.color, Colors.white, 0.34)!; // 3D underside
+    // Flat soft-tinted surface with a dark ink glyph (unified look).
+    final bg = widget.color.withAlpha(
+        widget.highlighted ? 110 : (_down ? 90 : 48));
     return GestureDetector(
       onTapDown: (_) => setState(() => _down = true),
       onTapUp: (_) => setState(() => _down = false),
@@ -230,43 +229,31 @@ class _RoundButtonState extends State<_RoundButton> {
         child: AspectRatio(
           aspectRatio: 1,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 70),
-            margin: EdgeInsets.only(top: _down ? 4 : 0),
+            duration: const Duration(milliseconds: 80),
             decoration: BoxDecoration(
-              color: base,
-              shape: BoxShape.circle,
+              color: bg,
+              borderRadius: BorderRadius.circular(Radii.lg),
+              border: widget.highlighted
+                  ? Border.all(color: widget.color, width: 2.5)
+                  : null,
             ),
-            child: Container(
-              margin: EdgeInsets.only(bottom: _down ? 0 : 4),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [top, bottom],
-                ),
-                shape: BoxShape.circle,
-                border: widget.highlighted
-                    ? Border.all(color: widget.color, width: 3)
-                    : null,
-              ),
-              child: Center(
-                child: widget.icon != null
-                    ? Icon(widget.icon, color: NColors.ink, size: 38)
-                    : FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Padding(
-                          padding: const EdgeInsets.all(6),
-                          child: Text(
-                            widget.label!,
-                            style: const TextStyle(
-                              color: NColors.ink,
-                              fontSize: 44,
-                              fontWeight: FontWeight.w700,
-                            ),
+            child: Center(
+              child: widget.icon != null
+                  ? Icon(widget.icon, color: NColors.ink, size: 38)
+                  : FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Text(
+                          widget.label!,
+                          style: const TextStyle(
+                            color: NColors.ink,
+                            fontSize: 44,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
-              ),
+                    ),
             ),
           ),
         ),

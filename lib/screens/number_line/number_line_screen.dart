@@ -66,7 +66,7 @@ class _NumberLineScreenState extends State<NumberLineScreen> {
         color: NColors.numberLine,
         assetImage: 'assets/cards/numberline.png',
         actions: [
-          ChunkyButton(
+          SoftButton(
             color: NColors.zero,
             onTap: _jumpToZero,
             height: 48,
@@ -207,7 +207,7 @@ class _Btn extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       flex: big ? 2 : 1,
-      child: ChunkyButton(
+      child: SoftButton(
         color: color,
         onTap: () => onTap(delta),
         height: big ? 76 : 60,

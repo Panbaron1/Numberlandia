@@ -91,9 +91,10 @@ class RoomHeader extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-/// A chunky, tactile button — rounded square with a darker "base" beneath
-/// the face that compresses on press. Big, friendly, and obviously pressable.
-class ChunkyButton extends StatefulWidget {
+/// The app's unified button — a flat, soft-tinted rounded rectangle with an
+/// accent-coloured glyph (the Times Tables look). Calm, high-contrast, and
+/// dims briefly on press. Disabled state uses a muted grey.
+class SoftButton extends StatefulWidget {
   final Widget child;
   final Color color;
   final VoidCallback? onTap;
@@ -101,7 +102,7 @@ class ChunkyButton extends StatefulWidget {
   final double? width;
   final double radius;
 
-  const ChunkyButton({
+  const SoftButton({
     super.key,
     required this.child,
     required this.color,
@@ -112,10 +113,10 @@ class ChunkyButton extends StatefulWidget {
   });
 
   @override
-  State<ChunkyButton> createState() => _ChunkyButtonState();
+  State<SoftButton> createState() => _SoftButtonState();
 }
 
-class _ChunkyButtonState extends State<ChunkyButton> {
+class _SoftButtonState extends State<SoftButton> {
   bool _down = false;
 
   void _set(bool v) {
@@ -126,8 +127,11 @@ class _ChunkyButtonState extends State<ChunkyButton> {
   @override
   Widget build(BuildContext context) {
     final enabled = widget.onTap != null;
-    final base = Color.lerp(widget.color, Colors.black, 0.22)!;
-    const depth = 5.0;
+    final bg = enabled
+        ? widget.color.withAlpha(_down ? 90 : 48)
+        : NColors.inkMuted.withAlpha(26);
+    // Dark ink glyphs for legibility on the soft tint (Spectroom-style).
+    final fg = enabled ? NColors.ink : NColors.inkMuted;
 
     return GestureDetector(
       onTapDown: (_) => _set(true),
@@ -135,32 +139,23 @@ class _ChunkyButtonState extends State<ChunkyButton> {
       onTapCancel: () => _set(false),
       onTap: widget.onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 70),
+        duration: const Duration(milliseconds: 80),
         width: widget.width,
         height: widget.height,
-        margin: EdgeInsets.only(top: _down ? depth : 0),
         decoration: BoxDecoration(
-          color: enabled ? base : NColors.inkMuted.withAlpha(60),
+          color: bg,
           borderRadius: BorderRadius.circular(widget.radius),
         ),
-        child: Container(
-          margin: EdgeInsets.only(bottom: _down ? 0 : depth),
-          decoration: BoxDecoration(
-            gradient: enabled ? vividGradient(widget.color) : null,
-            color: enabled ? null : NColors.inkMuted.withAlpha(40),
-            borderRadius: BorderRadius.circular(widget.radius),
-          ),
-          child: Center(
-            child: DefaultTextStyle.merge(
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontFamily: 'Fredoka',
-              ),
-              child: IconTheme.merge(
-                data: const IconThemeData(color: Colors.white),
-                child: widget.child,
-              ),
+        child: Center(
+          child: DefaultTextStyle.merge(
+            style: TextStyle(
+              color: fg,
+              fontWeight: FontWeight.w700,
+              fontFamily: 'Fredoka',
+            ),
+            child: IconTheme.merge(
+              data: IconThemeData(color: fg),
+              child: widget.child,
             ),
           ),
         ),

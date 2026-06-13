@@ -209,7 +209,7 @@ class _Controls extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: Gap.lg),
           child: Row(
             children: [
-              ChunkyButton(
+              SoftButton(
                 color: NColors.doubling,
                 onTap: notifier.value > DoublingNotifier.min
                     ? () => onStep(-1)
@@ -221,7 +221,7 @@ class _Controls extends StatelessWidget {
               ),
               const SizedBox(width: Gap.md),
               Expanded(
-                child: ChunkyButton(
+                child: SoftButton(
                   color: NColors.doubling,
                   onTap: notifier.value < DoublingNotifier.max ? onDouble : null,
                   height: 72,
@@ -231,7 +231,7 @@ class _Controls extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: Gap.md),
-              ChunkyButton(
+              SoftButton(
                 color: NColors.doubling,
                 onTap: notifier.value < DoublingNotifier.max
                     ? () => onStep(1)

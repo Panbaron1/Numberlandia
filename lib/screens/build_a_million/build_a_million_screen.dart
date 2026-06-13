@@ -112,7 +112,7 @@ class _Body extends StatelessWidget {
           // Reset
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Gap.md),
-            child: ChunkyButton(
+            child: SoftButton(
               color: NColors.inkSoft,
               onTap: onReset,
               height: 58,
@@ -302,7 +302,7 @@ class _AddButton extends StatelessWidget {
             ? NColors.numberLine
             : NColors.doubling);
     return Expanded(
-      child: ChunkyButton(
+      child: SoftButton(
         color: color,
         onTap: () => onTap(amount),
         height: 66,
