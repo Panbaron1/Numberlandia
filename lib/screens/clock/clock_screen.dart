@@ -54,13 +54,25 @@ class _ClockScreenState extends State<ClockScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Digital readout above the blocks
-                Text(
-                  '$hh:$mm:$ss',
+                // Digital readout above the blocks — each digit tinted with
+                // its numberblock colour, colons in soft ink.
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      for (final ch in '$hh:$mm:$ss'.split(''))
+                        TextSpan(
+                          text: ch,
+                          style: TextStyle(
+                            color: ch == ':'
+                                ? NColors.inkSoft
+                                : NColors.numBlockColor(int.parse(ch)),
+                          ),
+                        ),
+                    ],
+                  ),
                   style: const TextStyle(
                     fontSize: 64,
                     fontWeight: FontWeight.w800,
-                    color: NColors.clock,
                     letterSpacing: 4,
                     height: 1,
                   ),
