@@ -139,7 +139,7 @@ class HomeScreen extends StatelessWidget {
                               builder: (_) => const TimesTablesScreen())),
                     ),
                     ActivityCard(
-                      title: 'Calculator',
+                      title: 'Numberblocks',
                       assetImage: 'assets/cards/machine.png',
                       color: NColors.machine,
                       live: true,
