@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 /// Builds a number digit by digit (0–9 keypad). The value drives a numberblock
 /// view. Capped at 4 digits (0–9999) so the blocks stay drawable.
 class NumberInputNotifier extends ChangeNotifier {
-  static const int maxDigits = 4;
+  static const int maxDigits = 6;
 
   String _s = '0';
 

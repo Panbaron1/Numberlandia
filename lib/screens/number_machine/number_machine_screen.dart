@@ -54,11 +54,22 @@ class _NumberMachineScreenState extends State<NumberMachineScreen> {
         builder: (context, _) => SafeArea(
           child: Column(
             children: [
-              // ── Numberblocks for the typed number ───────────────────
+              // ── One numberblock character per digit, in a row ───────
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(Gap.md, Gap.md, Gap.md, 0),
-                  child: NumBlockView(value: _n.value),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      for (int i = 0; i < _n.text.length; i++) ...[
+                        if (i > 0) const SizedBox(width: Gap.md),
+                        Expanded(
+                          child: NumBlockView(
+                              value: int.parse(_n.text[i])),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
               // ── The number being written ────────────────────────────
