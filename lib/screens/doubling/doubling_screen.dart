@@ -23,6 +23,14 @@ class _DoublingScreenState extends State<DoublingScreen> {
     await AudioService.instance.playPop();
   }
 
+  void _set(int v) => _n.set(v);
+
+  Future<void> _double() async {
+    _n.doubleIt();
+    await HapticsService.instance.medium();
+    await AudioService.instance.playChime();
+  }
+
   @override
   void dispose() {
     _n.dispose();
@@ -51,8 +59,13 @@ class _DoublingScreenState extends State<DoublingScreen> {
                 child: _TowerView(notifier: _n),
               ),
               // ── Controls ─────────────────────────────────────────────
-              _Controls(onStep: _step, notifier: _n),
-              const SizedBox(height: Gap.xl),
+              _Controls(
+                notifier: _n,
+                onStep: _step,
+                onSet: _set,
+                onDouble: _double,
+              ),
+              const SizedBox(height: Gap.lg),
             ],
           ),
         ),
@@ -119,58 +132,46 @@ class _TowerView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final n = notifier.value;
-    final d = notifier.doubled;
-    final c1 = NColors.numBlockColor(n);
-    final c2 = NColors.numBlockColor(d);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: Gap.md),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+              child: _BlockSide(
+                  value: notifier.value, color: NColors.numBlockColor(notifier.value))),
+          const SizedBox(width: Gap.md),
+          // Arrow between the two
+          const Center(
+            child: Icon(Icons.arrow_forward_rounded,
+                color: NColors.inkSoft, size: 32),
+          ),
+          const SizedBox(width: Gap.md),
+          Expanded(
+              child: _BlockSide(
+                  value: notifier.doubled,
+                  color: NColors.numBlockColor(notifier.doubled))),
+        ],
+      ),
+    );
+  }
+}
 
-    // Dynamic unit size: fit both square-packed blocks in the available space.
-    // Height is driven by the number of rows in the (taller) doubled block,
-    // and width by its widest row — clamp to whichever is tighter.
-    final size = MediaQuery.of(context).size;
-    final rows = NumBlock.rowsFor(d).length;
-    final cols = NumBlock.rowsFor(d).first;
-    final byHeight = (size.height * 0.42) / (rows + 0.6);
-    final byWidth = (size.width * 0.40) / (cols + 0.6);
-    final unit = math.min(byHeight, byWidth).clamp(20.0, 54.0).toDouble();
+class _BlockSide extends StatelessWidget {
+  final int value;
+  final Color color;
+  const _BlockSide({required this.value, required this.color});
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.end,
+  @override
+  Widget build(BuildContext context) {
+    return Column(
       children: [
-        // Left tower: value n
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(n.toString(),
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: c1)),
-            const SizedBox(height: Gap.xs),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: NumBlock(key: ValueKey('left-$n'), value: n, unit: unit),
-            ),
-          ],
-        ),
-        const SizedBox(width: Gap.xxl),
-        // Right tower: doubled
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(d.toString(),
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: c2)),
-            const SizedBox(height: Gap.xs),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: NumBlock(key: ValueKey('right-$d'), value: d, unit: unit),
-            ),
-          ],
-        ),
+        Text('$value',
+            style: TextStyle(
+                fontSize: 22, fontWeight: FontWeight.w800, color: color)),
+        const SizedBox(height: Gap.xs),
+        // NumBlockView scales: widget+faces when small, painter up to 100×100.
+        Expanded(child: NumBlockView(value: value)),
       ],
     );
   }
@@ -179,46 +180,93 @@ class _TowerView extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _Controls extends StatelessWidget {
-  final Future<void> Function(int) onStep;
   final DoublingNotifier notifier;
+  final Future<void> Function(int) onStep;
+  final void Function(int) onSet;
+  final Future<void> Function() onDouble;
 
-  const _Controls({required this.onStep, required this.notifier});
+  const _Controls({
+    required this.notifier,
+    required this.onStep,
+    required this.onSet,
+    required this.onDouble,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Gap.xl),
-      child: Row(
-        children: [
-          ChunkyButton(
-            color: NColors.doubling,
-            onTap: notifier.value > DoublingNotifier.min ? () => onStep(-1) : null,
-            width: 84,
-            height: 84,
-            radius: Radii.lg,
-            child: const Icon(Icons.remove, size: 38),
+    // Slider uses a sqrt scale so the lower (kid-friendly) range is easy to
+    // land on while still reaching 5000.
+    final maxD = DoublingNotifier.max.toDouble();
+    // Inverse of the square mapping below, so the thumb sits at the real value.
+    final sliderVal =
+        ((notifier.value - 1) / (maxD - 1)).clamp(0.0, 1.0).toDouble();
+    final thumbPos = sliderVal <= 0 ? 0.0 : math.sqrt(sliderVal);
+
+    return Column(
+      children: [
+        // ── −1 / Double it! / +1 ─────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: Gap.lg),
+          child: Row(
+            children: [
+              ChunkyButton(
+                color: NColors.doubling,
+                onTap: notifier.value > DoublingNotifier.min
+                    ? () => onStep(-1)
+                    : null,
+                width: 72,
+                height: 72,
+                radius: Radii.lg,
+                child: const Icon(Icons.remove, size: 34),
+              ),
+              const SizedBox(width: Gap.md),
+              Expanded(
+                child: ChunkyButton(
+                  color: NColors.doubling,
+                  onTap: notifier.value < DoublingNotifier.max ? onDouble : null,
+                  height: 72,
+                  radius: Radii.lg,
+                  child: const Text('Double it!  ×2',
+                      style: TextStyle(fontSize: 22)),
+                ),
+              ),
+              const SizedBox(width: Gap.md),
+              ChunkyButton(
+                color: NColors.doubling,
+                onTap: notifier.value < DoublingNotifier.max
+                    ? () => onStep(1)
+                    : null,
+                width: 72,
+                height: 72,
+                radius: Radii.lg,
+                child: const Icon(Icons.add, size: 34),
+              ),
+            ],
           ),
-          const Spacer(),
-          Text(
-            '${notifier.value}',
-            style: const TextStyle(
-              fontSize: 52,
-              fontWeight: FontWeight.w700,
-              color: NColors.ink,
-              letterSpacing: -1,
+        ),
+        const SizedBox(height: Gap.sm),
+        // ── Slider 1..5000 ───────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: Gap.md),
+          child: SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: NColors.doubling,
+              thumbColor: NColors.doubling,
+              inactiveTrackColor: NColors.doubling.withAlpha(40),
+              overlayColor: NColors.doubling.withAlpha(30),
+              trackHeight: 6,
+            ),
+            child: Slider(
+              value: thumbPos.clamp(0.0, 1.0),
+              onChanged: (v) {
+                // Map 0..1 → 1..5000 on a square curve for finer low-end control.
+                final mapped = (v * v) * (maxD - 1) + 1;
+                onSet(mapped.round());
+              },
             ),
           ),
-          const Spacer(),
-          ChunkyButton(
-            color: NColors.doubling,
-            onTap: notifier.value < DoublingNotifier.max ? () => onStep(1) : null,
-            width: 84,
-            height: 84,
-            radius: Radii.lg,
-            child: const Icon(Icons.add, size: 38),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
