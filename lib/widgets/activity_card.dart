@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
 
-class ActivityCard extends StatelessWidget {
+class ActivityCard extends StatefulWidget {
   final String title;
-  final String emoji;
+  final String assetImage;
   final Color color;
   final bool live;
   final VoidCallback? onTap;
@@ -11,93 +11,92 @@ class ActivityCard extends StatelessWidget {
   const ActivityCard({
     super.key,
     required this.title,
-    required this.emoji,
+    required this.assetImage,
     required this.color,
     required this.live,
     this.onTap,
   });
 
   @override
+  State<ActivityCard> createState() => _ActivityCardState();
+}
+
+class _ActivityCardState extends State<ActivityCard> {
+  bool _down = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Opacity(
-      opacity: live ? 1.0 : 0.6,
-      child: Material(
-        color: NColors.surface,
-        borderRadius: BorderRadius.circular(Radii.lg),
-        clipBehavior: Clip.antiAlias,
-        elevation: 0,
-        child: InkWell(
-          onTap: live ? onTap : null, // silently no-op for coming-soon
-          child: DecoratedBox(
+    return GestureDetector(
+      onTapDown: widget.live ? (_) => setState(() => _down = true) : null,
+      onTapUp: widget.live ? (_) => setState(() => _down = false) : null,
+      onTapCancel: () => setState(() => _down = false),
+      onTap: widget.live ? widget.onTap : null,
+      child: AnimatedScale(
+        scale: _down ? 0.96 : 1.0,
+        duration: const Duration(milliseconds: 90),
+        child: Opacity(
+          opacity: widget.live ? 1.0 : 0.6,
+          child: Container(
             decoration: BoxDecoration(
-              border: Border.all(color: color.withAlpha(40), width: 1.5),
+              color: NColors.surface,
               borderRadius: BorderRadius.circular(Radii.lg),
+              border: Border.all(color: widget.color.withAlpha(70), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: widget.color.withAlpha(40),
+                  blurRadius: 12,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
+            clipBehavior: Clip.antiAlias,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ── Coloured header ──────────────────────────────────
+                // ── Big image area on a soft spectrum wash ───────────
                 Expanded(
-                  flex: 5,
+                  flex: 7,
                   child: Container(
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          color.withAlpha(220),
-                          color,
-                        ],
-                      ),
+                      gradient: softGradient(widget.color,
+                          topAlpha: 0.26, botAlpha: 0.10),
                     ),
-                    child: Center(
-                      child: Text(emoji,
-                          style: const TextStyle(fontSize: 44)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(Gap.md),
+                      child: Image.asset(widget.assetImage, fit: BoxFit.contain),
                     ),
                   ),
                 ),
-                // ── White label area ─────────────────────────────────
-                Expanded(
-                  flex: 3,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: Gap.sm, vertical: Gap.xs),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          title,
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                // ── Title strip ──────────────────────────────────────
+                Container(
+                  width: double.infinity,
+                  color: widget.color,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Gap.sm, vertical: Gap.sm),
+                  child: Column(
+                    children: [
+                      Text(
+                        widget.title,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          height: 1.1,
+                        ),
+                      ),
+                      if (!widget.live)
+                        const Text(
+                          'Coming soon',
                           style: TextStyle(
-                            color: live ? NColors.ink : NColors.inkSoft,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            height: 1.2,
+                            color: Colors.white70,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        if (!live) ...[
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: color.withAlpha(20),
-                              borderRadius: BorderRadius.circular(Radii.sm),
-                            ),
-                            child: Text(
-                              'Coming soon',
-                              style: TextStyle(
-                                color: color,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+                    ],
                   ),
                 ),
               ],

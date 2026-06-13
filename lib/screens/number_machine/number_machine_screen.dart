@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/haptics_service.dart';
 import '../../theme.dart';
+import '../../widgets/app_scaffold.dart';
 import '../../widgets/num_block.dart';
 import 'number_machine_notifier.dart';
 
@@ -55,15 +56,10 @@ class _NumberMachineScreenState extends State<NumberMachineScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: NColors.bg,
-        leading: IconButton(
-          iconSize: 28,
-          icon: const Icon(Icons.arrow_back_rounded, color: NColors.ink),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text('Number Machine',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+      appBar: const RoomHeader(
+        title: 'Number Machine',
+        color: NColors.machine,
+        assetImage: 'assets/cards/machine.png',
       ),
       body: AnimatedBuilder(
         animation: Listenable.merge([_n, _runAnim]),
@@ -84,22 +80,13 @@ class _NumberMachineScreenState extends State<NumberMachineScreen>
                 _MachinePanel(notifier: _n, anim: _runAnim),
                 const SizedBox(height: Gap.md),
                 // ── Run button ────────────────────────────────────────
-                SizedBox(
+                ChunkyButton(
+                  color: NColors.machine,
+                  onTap: _run,
+                  height: 76,
                   width: double.infinity,
-                  height: 72,
-                  child: FilledButton(
-                    onPressed: _run,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: NColors.machine,
-                      foregroundColor: Colors.white,
-                      textStyle: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.w800),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(Radii.lg),
-                      ),
-                    ),
-                    child: const Text('RUN ▶'),
-                  ),
+                  radius: Radii.lg,
+                  child: const Text('RUN  ▶', style: TextStyle(fontSize: 24)),
                 ),
                 const SizedBox(height: Gap.md),
                 // ── Output ───────────────────────────────────────────
@@ -206,22 +193,13 @@ class _IBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return ChunkyButton(
+      color: NColors.million,
+      onTap: onTap,
       width: big ? 60 : 52,
       height: big ? 60 : 52,
-      child: FilledButton(
-        onPressed: onTap,
-        style: FilledButton.styleFrom(
-          backgroundColor: NColors.million,
-          foregroundColor: Colors.white,
-          padding: EdgeInsets.zero,
-          textStyle: TextStyle(
-              fontSize: big ? 18 : 13, fontWeight: FontWeight.w800),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(Radii.md)),
-        ),
-        child: Text(label),
-      ),
+      radius: Radii.md,
+      child: Text(label, style: TextStyle(fontSize: big ? 18 : 13)),
     );
   }
 }

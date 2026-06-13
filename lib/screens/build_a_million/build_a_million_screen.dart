@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/haptics_service.dart';
 import '../../theme.dart';
+import '../../widgets/app_scaffold.dart';
 import 'million_notifier.dart';
 
 class BuildAMillionScreen extends StatefulWidget {
@@ -38,9 +39,10 @@ class _BuildAMillionScreenState extends State<BuildAMillionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: const _BackButton(),
-        title: const Text('Build a Million'),
+      appBar: const RoomHeader(
+        title: 'Build a Million',
+        color: NColors.million,
+        assetImage: 'assets/cards/million.png',
       ),
       body: AnimatedBuilder(
         animation: _notifier,
@@ -110,20 +112,18 @@ class _Body extends StatelessWidget {
           // Reset
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Gap.md),
-            child: SizedBox(
+            child: ChunkyButton(
+              color: NColors.inkSoft,
+              onTap: onReset,
+              height: 58,
               width: double.infinity,
-              height: 56,
-              child: OutlinedButton.icon(
-                onPressed: onReset,
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Reset to zero'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: NColors.inkSoft,
-                  side: const BorderSide(color: NColors.inkSoft, width: 1.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(Radii.md),
-                  ),
-                ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.refresh_rounded, size: 22),
+                  SizedBox(width: Gap.sm),
+                  Text('Reset to zero', style: TextStyle(fontSize: 17)),
+                ],
               ),
             ),
           ),
@@ -295,36 +295,19 @@ class _AddButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Bigger denominations get a stronger tint for visual hierarchy.
+    final color = amount >= 10000
+        ? NColors.million
+        : (amount >= 100
+            ? NColors.numberLine
+            : NColors.doubling);
     return Expanded(
-      child: SizedBox(
-        height: 64,
-        child: FilledButton(
-          onPressed: () => onTap(amount),
-          style: FilledButton.styleFrom(
-            backgroundColor: NColors.million,
-            foregroundColor: Colors.white,
-            textStyle: const TextStyle(
-                fontSize: 15, fontWeight: FontWeight.w700),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(Radii.md),
-            ),
-          ),
-          child: Text(label),
-        ),
+      child: ChunkyButton(
+        color: color,
+        onTap: () => onTap(amount),
+        height: 66,
+        child: Text(label, style: const TextStyle(fontSize: 16)),
       ),
-    );
-  }
-}
-
-class _BackButton extends StatelessWidget {
-  const _BackButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      iconSize: 28,
-      icon: const Icon(Icons.arrow_back_rounded),
-      onPressed: () => Navigator.of(context).pop(),
     );
   }
 }

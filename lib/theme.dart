@@ -67,13 +67,14 @@ class Radii {
 }
 
 ThemeData buildNumberlandiaTheme() {
-  return ThemeData(
+  final base = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
       seedColor: NColors.primary,
       surface: NColors.surface,
     ),
     scaffoldBackgroundColor: NColors.bg,
+    fontFamily: 'Fredoka',
     cardTheme: const CardThemeData(
       color: NColors.surface,
       elevation: 0,
@@ -87,11 +88,43 @@ ThemeData buildNumberlandiaTheme() {
       scrolledUnderElevation: 0,
       centerTitle: true,
       foregroundColor: NColors.ink,
+      titleTextStyle: TextStyle(
+        fontFamily: 'Fredoka',
+        fontSize: 22,
+        fontWeight: FontWeight.w700,
+        color: NColors.ink,
+      ),
     ),
+  );
+  // Apply Fredoka across the text theme.
+  return base.copyWith(
+    textTheme: base.textTheme.apply(fontFamily: 'Fredoka'),
   );
 }
 
 int gridColumns(double width) {
+  if (width >= 900) return 3;
   if (width >= 600) return 3;
   return 2;
+}
+
+/// Soft diagonal gradient from an accent colour — used on cards and panels.
+LinearGradient softGradient(Color c, {double topAlpha = 0.20, double botAlpha = 0.06}) {
+  return LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      c.withAlpha((topAlpha * 255).round()),
+      c.withAlpha((botAlpha * 255).round()),
+    ],
+  );
+}
+
+/// Vivid gradient (for solid buttons / headers).
+LinearGradient vividGradient(Color c) {
+  return LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color.lerp(c, Colors.white, 0.22)!, c],
+  );
 }

@@ -61,6 +61,23 @@ class HomeScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                  // Mascot cluster — a few number characters waving hello
+                  if (width >= 500) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(right: Gap.md, top: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          for (int i = 1; i <= 4; i++)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 6),
+                              child: BouncyNumBlock(
+                                  value: i, unit: 14, showSign: false),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                   IconButton(
                     iconSize: 26,
                     icon: const Icon(Icons.tune_rounded, color: NColors.inkSoft),
@@ -72,18 +89,30 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: Gap.sm),
             // ── Grid ─────────────────────────────────────────────────
+            // Compute the child aspect ratio so all rows fit the available
+            // height with no scrolling, on both phone (2 col) and tablet (3 col).
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Gap.md),
-                child: GridView.count(
-                  crossAxisCount: cols,
-                  mainAxisSpacing: Gap.md,
-                  crossAxisSpacing: Gap.md,
-                  childAspectRatio: 0.8,
-                  children: [
+                child: LayoutBuilder(
+                  builder: (context, c) {
+                    const spacing = Gap.md;
+                    final rows = (5 / cols).ceil();
+                    final cellW = (c.maxWidth - (cols - 1) * spacing) / cols;
+                    final cellH =
+                        (c.maxHeight - (rows - 1) * spacing) / rows;
+                    final aspect =
+                        (cellW / cellH).clamp(0.7, 1.6).toDouble();
+                    return GridView.count(
+                      crossAxisCount: cols,
+                      mainAxisSpacing: spacing,
+                      crossAxisSpacing: spacing,
+                      physics: const NeverScrollableScrollPhysics(),
+                      childAspectRatio: aspect,
+                      children: [
                     ActivityCard(
                       title: 'Build a Million',
-                      emoji: '🏗️',
+                      assetImage: 'assets/cards/million.png',
                       color: NColors.million,
                       live: true,
                       onTap: () => Navigator.push(context,
@@ -92,7 +121,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     ActivityCard(
                       title: 'Number Line',
-                      emoji: '📏',
+                      assetImage: 'assets/cards/numberline.png',
                       color: NColors.numberLine,
                       live: true,
                       onTap: () => Navigator.push(context,
@@ -101,7 +130,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     ActivityCard(
                       title: 'Times Tables',
-                      emoji: '✖️',
+                      assetImage: 'assets/cards/timestables.png',
                       color: NColors.timesTables,
                       live: true,
                       onTap: () => Navigator.push(context,
@@ -110,7 +139,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     ActivityCard(
                       title: 'Number Machine',
-                      emoji: '⚙️',
+                      assetImage: 'assets/cards/machine.png',
                       color: NColors.machine,
                       live: true,
                       onTap: () => Navigator.push(context,
@@ -119,75 +148,22 @@ class HomeScreen extends StatelessWidget {
                     ),
                     ActivityCard(
                       title: 'Doubling',
-                      emoji: '✌️',
+                      assetImage: 'assets/cards/doubling.png',
                       color: NColors.doubling,
                       live: true,
                       onTap: () => Navigator.push(context,
                           MaterialPageRoute(
                               builder: (_) => const DoublingScreen())),
                     ),
-                  ],
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
-            // ── Buddies band — a shelf of number characters ──────────
-            const _BuddiesBand(),
+            const SizedBox(height: Gap.md),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// A friendly row of NumBlock characters standing on a shelf at the bottom
-/// of the home screen. Purely decorative — gives the app its mascots.
-class _BuddiesBand extends StatelessWidget {
-  const _BuddiesBand();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 88,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            NColors.bg,
-            NColors.million.withAlpha(16),
-          ],
-        ),
-      ),
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          // Shelf line
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 14,
-            child: Container(
-              height: 3,
-              margin: const EdgeInsets.symmetric(horizontal: Gap.lg),
-              decoration: BoxDecoration(
-                color: NColors.inkSoft.withAlpha(40),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          // Characters 1..5 standing on the shelf
-          Padding(
-            padding: const EdgeInsets.only(bottom: 17),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                for (int i = 1; i <= 5; i++)
-                  BouncyNumBlock(value: i, unit: 11, showSign: false),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

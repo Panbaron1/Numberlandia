@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/haptics_service.dart';
 import '../../theme.dart';
+import '../../widgets/app_scaffold.dart';
 import 'times_tables_notifier.dart';
 
 class TimesTablesScreen extends StatefulWidget {
@@ -28,15 +29,10 @@ class _TimesTablesScreenState extends State<TimesTablesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: NColors.bg,
-        leading: IconButton(
-          iconSize: 28,
-          icon: const Icon(Icons.arrow_back_rounded, color: NColors.ink),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text('Times Tables',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+      appBar: const RoomHeader(
+        title: 'Times Tables',
+        color: NColors.timesTables,
+        assetImage: 'assets/cards/timestables.png',
       ),
       body: AnimatedBuilder(
         animation: _n,
@@ -359,21 +355,13 @@ class _PBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 56,
-      height: 56,
-      child: FilledButton(
-        onPressed: enabled ? onTap : null,
-        style: FilledButton.styleFrom(
-          backgroundColor: color,
-          disabledBackgroundColor: NColors.inkMuted.withAlpha(40),
-          padding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Radii.md),
-          ),
-        ),
-        child: Icon(icon, color: Colors.white, size: 24),
-      ),
+    return ChunkyButton(
+      color: color,
+      onTap: enabled ? onTap : null,
+      width: 60,
+      height: 60,
+      radius: Radii.md,
+      child: Icon(icon, size: 28),
     );
   }
 }

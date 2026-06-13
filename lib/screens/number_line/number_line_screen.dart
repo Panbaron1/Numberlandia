@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/haptics_service.dart';
 import '../../theme.dart';
+import '../../widgets/app_scaffold.dart';
 import '../../widgets/num_block.dart';
 import 'number_line_notifier.dart';
 import 'number_line_painter.dart';
@@ -60,27 +61,19 @@ class _NumberLineScreenState extends State<NumberLineScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: NColors.bg,
-        leading: IconButton(
-          iconSize: 28,
-          icon: const Icon(Icons.arrow_back_rounded, color: NColors.ink),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text('Number Line',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+      appBar: RoomHeader(
+        title: 'Number Line',
+        color: NColors.numberLine,
+        assetImage: 'assets/cards/numberline.png',
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: Gap.sm),
-            child: TextButton(
-              onPressed: _jumpToZero,
-              child: const Text('Go to 0',
-                  style: TextStyle(
-                      color: NColors.zero,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14)),
-            ),
+          ChunkyButton(
+            color: NColors.zero,
+            onTap: _jumpToZero,
+            height: 48,
+            width: 92,
+            child: const Text('Go to 0', style: TextStyle(fontSize: 15)),
           ),
+          const SizedBox(width: Gap.sm),
         ],
       ),
       body: AnimatedBuilder(
@@ -140,8 +133,8 @@ class _FactsPanel extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (showBlock) ...[
-                BouncyNumBlock(value: n, unit: 22, showSign: false),
-                const SizedBox(width: Gap.sm),
+                BouncyNumBlock(value: n, unit: 28, showSign: false),
+                const SizedBox(width: Gap.md),
               ],
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 110),
@@ -277,24 +270,13 @@ class _Btn extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       flex: big ? 2 : 1,
-      child: SizedBox(
-        height: big ? 68 : 52,
-        child: FilledButton(
-          onPressed: () => onTap(delta),
-          style: FilledButton.styleFrom(
-            backgroundColor: color,
-            foregroundColor: Colors.white,
-            padding: EdgeInsets.zero,
-            textStyle: TextStyle(
-              fontSize: big ? 20 : 13,
-              fontWeight: FontWeight.w800,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(Radii.md),
-            ),
-          ),
-          child: Text(label),
-        ),
+      child: ChunkyButton(
+        color: color,
+        onTap: () => onTap(delta),
+        height: big ? 76 : 60,
+        radius: Radii.md,
+        child: Text(label,
+            style: TextStyle(fontSize: big ? 24 : 15)),
       ),
     );
   }

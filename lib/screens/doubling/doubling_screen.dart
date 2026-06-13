@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/haptics_service.dart';
 import '../../theme.dart';
+import '../../widgets/app_scaffold.dart';
 import '../../widgets/num_block.dart';
 import 'doubling_notifier.dart';
 
@@ -30,15 +31,10 @@ class _DoublingScreenState extends State<DoublingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: NColors.bg,
-        leading: IconButton(
-          iconSize: 28,
-          icon: const Icon(Icons.arrow_back_rounded, color: NColors.ink),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text('Doubling',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+      appBar: const RoomHeader(
+        title: 'Doubling',
+        color: NColors.doubling,
+        assetImage: 'assets/cards/doubling.png',
       ),
       body: AnimatedBuilder(
         animation: _n,
@@ -189,48 +185,32 @@ class _Controls extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: Gap.xl),
       child: Row(
         children: [
-          SizedBox(
-            width: 80,
-            height: 80,
-            child: FilledButton(
-              onPressed:
-                  notifier.value > DoublingNotifier.min ? () => onStep(-1) : null,
-              style: FilledButton.styleFrom(
-                backgroundColor: NColors.doubling,
-                disabledBackgroundColor: NColors.inkMuted.withAlpha(30),
-                padding: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(Radii.lg)),
-              ),
-              child: const Icon(Icons.remove, color: Colors.white, size: 32),
-            ),
+          ChunkyButton(
+            color: NColors.doubling,
+            onTap: notifier.value > DoublingNotifier.min ? () => onStep(-1) : null,
+            width: 84,
+            height: 84,
+            radius: Radii.lg,
+            child: const Icon(Icons.remove, size: 38),
           ),
           const Spacer(),
           Text(
             '${notifier.value}',
             style: const TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.w900,
+              fontSize: 52,
+              fontWeight: FontWeight.w700,
               color: NColors.ink,
               letterSpacing: -1,
             ),
           ),
           const Spacer(),
-          SizedBox(
-            width: 80,
-            height: 80,
-            child: FilledButton(
-              onPressed:
-                  notifier.value < DoublingNotifier.max ? () => onStep(1) : null,
-              style: FilledButton.styleFrom(
-                backgroundColor: NColors.doubling,
-                disabledBackgroundColor: NColors.inkMuted.withAlpha(30),
-                padding: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(Radii.lg)),
-              ),
-              child: const Icon(Icons.add, color: Colors.white, size: 32),
-            ),
+          ChunkyButton(
+            color: NColors.doubling,
+            onTap: notifier.value < DoublingNotifier.max ? () => onStep(1) : null,
+            width: 84,
+            height: 84,
+            radius: Radii.lg,
+            child: const Icon(Icons.add, size: 38),
           ),
         ],
       ),

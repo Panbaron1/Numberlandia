@@ -22,3 +22,8 @@ flutter:
   assets:
     - assets/sounds/pop.wav
     - assets/sounds/chime.wav
+    - assets/cards/
+  fonts:
+    - family: Fredoka
+      fonts:
+        - asset: assets/fonts/Fredoka.ttf
