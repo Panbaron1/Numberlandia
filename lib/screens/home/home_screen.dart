@@ -5,6 +5,7 @@ import '../../widgets/num_block.dart';
 import '../../widgets/settings_sheet.dart';
 import '../add_up/add_up_screen.dart';
 import '../build_a_million/build_a_million_screen.dart';
+import '../clock/clock_screen.dart';
 import '../number_line/number_line_screen.dart';
 import '../times_tables/times_tables_screen.dart';
 import '../number_machine/number_machine_screen.dart';
@@ -98,7 +99,7 @@ class HomeScreen extends StatelessWidget {
                 child: LayoutBuilder(
                   builder: (context, c) {
                     const spacing = Gap.md;
-                    final rows = (6 / cols).ceil();
+                    final rows = (7 / cols).ceil();
                     final cellW = (c.maxWidth - (cols - 1) * spacing) / cols;
                     final cellH =
                         (c.maxHeight - (rows - 1) * spacing) / rows;
@@ -108,7 +109,7 @@ class HomeScreen extends StatelessWidget {
                       crossAxisCount: cols,
                       mainAxisSpacing: spacing,
                       crossAxisSpacing: spacing,
-                      physics: const NeverScrollableScrollPhysics(),
+                      physics: const ClampingScrollPhysics(),
                       childAspectRatio: aspect,
                       children: [
                     ActivityCard(
@@ -164,6 +165,15 @@ class HomeScreen extends StatelessWidget {
                       onTap: () => Navigator.push(context,
                           MaterialPageRoute(
                               builder: (_) => const BuildAMillionScreen())),
+                    ),
+                    ActivityCard(
+                      title: 'Clock',
+                      assetImage: 'assets/cards/clock.png',
+                      color: NColors.clock,
+                      live: true,
+                      onTap: () => Navigator.push(context,
+                          MaterialPageRoute(
+                              builder: (_) => const ClockScreen())),
                     ),
                       ],
                     );

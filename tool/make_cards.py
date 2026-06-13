@@ -140,4 +140,17 @@ for i in range(count):
     square(d, cx - unit / 2, y, million, unit, drawface=(i == 0))
 save(img, "million")
 
+# ── clock: digital time made of numberblocks (1 2 : 3 0) ────────────────────
+img, d = canvas()
+u = 70
+yb = 380
+block(d, 130, yb, 1, unit=u)
+block(d, 215, yb, 2, unit=u)
+# colon
+for dy in (-30, 30):
+    d.ellipse([300 - 13, yb - 95 + dy - 13, 300 + 13, yb - 95 + dy + 13], fill=INK_SOFT)
+block(d, 375, yb, 3, unit=u)
+block(d, 500, yb, 4, unit=u)
+save(img, "clock")
+
 print("done")

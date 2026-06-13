@@ -14,6 +14,7 @@ class NColors {
   static const machine    = Color(0xFFA78BFA);
   static const doubling   = Color(0xFFFF6B9D);
   static const addUp      = Color(0xFF34C759); // green
+  static const clock      = Color(0xFF5C6BC0); // indigo
 
   static const primary = million;
   static const zero    = Color(0xFFFFCC00); // gold
@@ -104,7 +105,7 @@ ThemeData buildNumberlandiaTheme() {
 }
 
 int gridColumns(double width) {
-  if (width >= 900) return 3;
+  if (width >= 1100) return 4; // wide tablet landscape: 7 cards → 4 + 3
   if (width >= 600) return 3;
   return 2;
 }
