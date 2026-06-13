@@ -82,19 +82,16 @@ class _AddUpScreenState extends State<AddUpScreen> {
                 ),
               ),
               const SizedBox(height: Gap.sm),
-              // ── Sliders ──────────────────────────────────────────────
-              _AddSlider(
-                label: 'First',
+              // ── Stepper rows (big +/- buttons) ───────────────────────
+              _StepperRow(
                 value: _n.a,
                 color: NColors.numBlockColor(_n.a),
-                onChanged: _changeA,
                 onStep: (d) => _changeA(_n.a + d),
               ),
-              _AddSlider(
-                label: 'Second',
+              const SizedBox(height: Gap.sm),
+              _StepperRow(
                 value: _n.b,
                 color: NColors.numBlockColor(_n.b),
-                onChanged: _changeB,
                 onStep: (d) => _changeB(_n.b + d),
               ),
               const SizedBox(height: Gap.md),
@@ -210,105 +207,75 @@ class _BlockPanel extends StatelessWidget {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _AddSlider extends StatelessWidget {
-  final String label;
+/// One addend's controls: big −100 −10 −1 [value] +1 +10 +100 chunky buttons.
+class _StepperRow extends StatelessWidget {
   final int value;
   final Color color;
-  final ValueChanged<int> onChanged;
   final void Function(int) onStep;
 
-  const _AddSlider({
-    required this.label,
+  const _StepperRow({
     required this.value,
     required this.color,
-    required this.onChanged,
     required this.onStep,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Square curve: easy on the low (single-digit) end, still reaches 5000.
-    const maxV = AddUpNotifier.max;
-    final norm = (value / maxV).clamp(0.0, 1.0);
-    final thumb = norm <= 0 ? 0.0 : _sqrt(norm);
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: Gap.md),
       child: Row(
         children: [
-          SizedBox(
+          _Step(label: '−100', color: color, onTap: () => onStep(-100)),
+          const SizedBox(width: Gap.xs),
+          _Step(label: '−10', color: color, onTap: () => onStep(-10)),
+          const SizedBox(width: Gap.xs),
+          _Step(label: '−1', color: color, onTap: () => onStep(-1), big: true),
+          // Current value in the centre
+          Container(
             width: 96,
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 52,
-                  child: Text('$value',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: color)),
-                ),
-                Text(label,
-                    style: const TextStyle(
-                        fontSize: 11,
-                        color: NColors.inkSoft,
-                        fontWeight: FontWeight.w500)),
-              ],
-            ),
+            alignment: Alignment.center,
+            child: Text('$value',
+                style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                    letterSpacing: -1)),
           ),
-          _StepDot(icon: Icons.remove, color: color, onTap: () => onStep(-1)),
-          Expanded(
-            child: SliderTheme(
-              data: SliderThemeData(
-                activeTrackColor: color,
-                thumbColor: color,
-                inactiveTrackColor: color.withAlpha(40),
-                overlayColor: color.withAlpha(30),
-                trackHeight: 6,
-              ),
-              child: Slider(
-                value: thumb,
-                onChanged: (v) => onChanged((v * v * maxV).round()),
-              ),
-            ),
-          ),
-          _StepDot(icon: Icons.add, color: color, onTap: () => onStep(1)),
+          _Step(label: '+1', color: color, onTap: () => onStep(1), big: true),
+          const SizedBox(width: Gap.xs),
+          _Step(label: '+10', color: color, onTap: () => onStep(10)),
+          const SizedBox(width: Gap.xs),
+          _Step(label: '+100', color: color, onTap: () => onStep(100)),
         ],
       ),
     );
   }
-
-  // Local sqrt to avoid importing dart:math for one call.
-  static double _sqrt(double x) {
-    double g = x;
-    for (int i = 0; i < 20; i++) {
-      g = (g + x / g) / 2;
-    }
-    return g;
-  }
 }
 
-class _StepDot extends StatelessWidget {
-  final IconData icon;
+class _Step extends StatelessWidget {
+  final String label;
   final Color color;
   final VoidCallback onTap;
-  const _StepDot(
-      {required this.icon, required this.color, required this.onTap});
+  final bool big;
+
+  const _Step({
+    required this.label,
+    required this.color,
+    required this.onTap,
+    this.big = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 44,
-        height: 44,
-        margin: const EdgeInsets.symmetric(horizontal: 2),
-        decoration: BoxDecoration(
-          color: color.withAlpha(28),
-          borderRadius: BorderRadius.circular(Radii.sm),
-        ),
-        child: Icon(icon, color: color, size: 24),
+    return Expanded(
+      flex: big ? 3 : 2,
+      child: ChunkyButton(
+        color: color,
+        onTap: onTap,
+        height: big ? 72 : 60,
+        radius: Radii.md,
+        child: Text(label,
+            style: TextStyle(fontSize: big ? 28 : 20)),
       ),
     );
   }

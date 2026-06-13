@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 /// Two addends that combine into their sum. No-fail sandbox.
 class AddUpNotifier extends ChangeNotifier {
   static const int min = 0;
-  static const int max = 5000; // sum reaches 10,000
+  static const int max = 500; // sum reaches 1,000
 
   int _a = 2;
   int _b = 3;
