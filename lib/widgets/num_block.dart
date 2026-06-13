@@ -387,11 +387,37 @@ class NumBlockPainter extends CustomPainter {
         }
       }
     }
+
+    // Friendly face on the top-left cell when it's big enough to read.
+    if (cell >= 22) paintNumberFace(canvas, Offset(ox, oy), cell);
   }
 
   @override
   bool shouldRepaint(NumBlockPainter old) =>
       old.rows != rows || old.cols != cols || old.color != color;
+}
+
+/// Draws a simple friendly face (two eyes + smile) on a unit cell whose
+/// top-left corner is [cellTopLeft] and side length is [cell]. Shared by the
+/// numberblock painter and the times-tables array.
+void paintNumberFace(Canvas canvas, Offset cellTopLeft, double cell) {
+  final cx = cellTopLeft.dx + cell / 2;
+  final eyeY = cellTopLeft.dy + cell * 0.4;
+  final r = cell * 0.1;
+  final white = Paint()..color = Colors.white;
+  final dark = Paint()..color = NColors.ink;
+  for (final dx in [-cell * 0.18, cell * 0.18]) {
+    canvas.drawCircle(Offset(cx + dx, eyeY), r, white);
+    canvas.drawCircle(Offset(cx + dx, eyeY), r * 0.5, dark);
+  }
+  final smile = Paint()
+    ..color = NColors.ink.withAlpha(160)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = cell * 0.05
+    ..strokeCap = StrokeCap.round;
+  final rect = Rect.fromCircle(
+      center: Offset(cx, cellTopLeft.dy + cell * 0.55), radius: cell * 0.18);
+  canvas.drawArc(rect, 0.2, 2.74, false, smile);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
