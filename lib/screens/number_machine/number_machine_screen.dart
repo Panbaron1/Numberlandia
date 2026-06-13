@@ -62,7 +62,7 @@ class _NumberMachineScreenState extends State<NumberMachineScreen> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       for (int i = 0; i < _n.text.length; i++) ...[
-                        if (i > 0) const SizedBox(width: Gap.md),
+                        if (i > 0) const SizedBox(width: Gap.xs),
                         Expanded(
                           child: NumBlockView(
                               value: int.parse(_n.text[i])),
@@ -74,15 +74,19 @@ class _NumberMachineScreenState extends State<NumberMachineScreen> {
               ),
               // ── The number being written ────────────────────────────
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: Gap.sm),
-                child: Text(
-                  _n.text,
-                  style: TextStyle(
-                    fontSize: 72,
-                    fontWeight: FontWeight.w800,
-                    color: NColors.numBlockColor(_n.value),
-                    letterSpacing: 2,
-                    height: 1,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: Gap.md, vertical: Gap.sm),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    _n.text,
+                    style: const TextStyle(
+                      fontSize: 72,
+                      fontWeight: FontWeight.w800,
+                      color: NColors.ink,
+                      letterSpacing: 2,
+                      height: 1,
+                    ),
                   ),
                 ),
               ),
