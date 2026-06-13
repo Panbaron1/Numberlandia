@@ -27,27 +27,25 @@ class NumBlock extends StatelessWidget {
     this.face = true,
   });
 
-  /// Row lengths (top → bottom) that pack [n] into a near-square block.
+  /// Dimensions [rows, cols] that pack [n] into the canonical number-character
+  /// rectangle: taller than wide, vertical first. rows = the smallest divisor
+  /// of n that is >= sqrt(n); cols = n / rows. Primes become a single tall
+  /// column (7 → 7×1); 8 → 4×2, 6 → 3×2, 4 → 2×2, 9 → 3×3.
+  static List<int> dimsFor(int n) {
+    if (n <= 1) return [n, n == 0 ? 0 : 1];
+    final root = math.sqrt(n).ceil();
+    for (int r = root; r <= n; r++) {
+      if (n % r == 0) return [r, n ~/ r];
+    }
+    return [n, 1]; // prime fallback (root..n found n itself)
+  }
+
+  /// Row lengths (top → bottom). Every number is a clean rectangle, so this is
+  /// `rows` copies of `cols`.
   static List<int> rowsFor(int n) {
     if (n <= 1) return [n];
-    // Largest divisor <= sqrt(n) → clean rectangle for composites.
-    final root = math.sqrt(n).floor();
-    for (int d = root; d >= 2; d--) {
-      if (n % d == 0) {
-        final cols = n ~/ d;
-        return List.filled(d, cols); // d rows of `cols`
-      }
-    }
-    // Prime (or n with no small divisor): balanced ragged grid.
-    final cols = math.sqrt(n).ceil();
-    final out = <int>[];
-    int rem = n;
-    while (rem > 0) {
-      final len = rem >= cols ? cols : rem;
-      out.add(len);
-      rem -= len;
-    }
-    return out;
+    final d = dimsFor(n);
+    return List.filled(d[0], d[1]);
   }
 
   @override

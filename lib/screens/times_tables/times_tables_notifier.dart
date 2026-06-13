@@ -5,7 +5,7 @@ class TimesTablesNotifier extends ChangeNotifier {
   int _b = 3;
 
   static const int min = 1;
-  static const int max = 12;
+  static const int max = 100; // up to 100 × 100 = 10,000
 
   int get a => _a;
   int get b => _b;
