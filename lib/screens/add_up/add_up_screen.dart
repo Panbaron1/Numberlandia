@@ -63,13 +63,15 @@ class _AddUpScreenState extends State<AddUpScreen> {
                           flex: 3,
                           child: _BlockPanel(
                               value: _n.a,
-                              color: NColors.numBlockColor(_n.a))),
+                              color: NColors.numBlockColor(_n.a),
+                              onStep: (d) => _changeA(_n.a + d))),
                       const _Sign('+'),
                       Expanded(
                           flex: 3,
                           child: _BlockPanel(
                               value: _n.b,
-                              color: NColors.numBlockColor(_n.b))),
+                              color: NColors.numBlockColor(_n.b),
+                              onStep: (d) => _changeB(_n.b + d))),
                       const _Sign('='),
                       Expanded(
                           flex: 4,
@@ -80,19 +82,6 @@ class _AddUpScreenState extends State<AddUpScreen> {
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: Gap.sm),
-              // ── Stepper rows (big +/- buttons) ───────────────────────
-              _StepperRow(
-                value: _n.a,
-                color: NColors.numBlockColor(_n.a),
-                onStep: (d) => _changeA(_n.a + d),
-              ),
-              const SizedBox(height: Gap.sm),
-              _StepperRow(
-                value: _n.b,
-                color: NColors.numBlockColor(_n.b),
-                onStep: (d) => _changeB(_n.b + d),
               ),
               const SizedBox(height: Gap.md),
             ],
@@ -187,7 +176,13 @@ class _BlockPanel extends StatelessWidget {
   final int value;
   final Color color;
   final bool big;
-  const _BlockPanel({required this.value, required this.color, this.big = false});
+  final void Function(int)? onStep; // null = no controls (the sum)
+  const _BlockPanel({
+    required this.value,
+    required this.color,
+    this.big = false,
+    this.onStep,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -195,88 +190,40 @@ class _BlockPanel extends StatelessWidget {
       children: [
         Text('$value',
             style: TextStyle(
-                fontSize: big ? 24 : 18,
+                fontSize: big ? 28 : 22,
                 fontWeight: FontWeight.w800,
                 color: color)),
         const SizedBox(height: Gap.xs),
         Expanded(child: NumBlockView(value: value)),
+        // − / + directly under the block (step of 1)
+        if (onStep != null) ...[
+          const SizedBox(height: Gap.sm),
+          Row(
+            children: [
+              Expanded(
+                child: ChunkyButton(
+                  color: color,
+                  onTap: () => onStep!(-1),
+                  height: 64,
+                  radius: Radii.md,
+                  child: const Icon(Icons.remove, size: 36),
+                ),
+              ),
+              const SizedBox(width: Gap.sm),
+              Expanded(
+                child: ChunkyButton(
+                  color: color,
+                  onTap: () => onStep!(1),
+                  height: 64,
+                  radius: Radii.md,
+                  child: const Icon(Icons.add, size: 36),
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// One addend's controls: big −100 −10 −1 [value] +1 +10 +100 chunky buttons.
-class _StepperRow extends StatelessWidget {
-  final int value;
-  final Color color;
-  final void Function(int) onStep;
-
-  const _StepperRow({
-    required this.value,
-    required this.color,
-    required this.onStep,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Gap.md),
-      child: Row(
-        children: [
-          _Step(label: '−100', color: color, onTap: () => onStep(-100)),
-          const SizedBox(width: Gap.xs),
-          _Step(label: '−10', color: color, onTap: () => onStep(-10)),
-          const SizedBox(width: Gap.xs),
-          _Step(label: '−1', color: color, onTap: () => onStep(-1), big: true),
-          // Current value in the centre
-          Container(
-            width: 96,
-            alignment: Alignment.center,
-            child: Text('$value',
-                style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.w800,
-                    color: color,
-                    letterSpacing: -1)),
-          ),
-          _Step(label: '+1', color: color, onTap: () => onStep(1), big: true),
-          const SizedBox(width: Gap.xs),
-          _Step(label: '+10', color: color, onTap: () => onStep(10)),
-          const SizedBox(width: Gap.xs),
-          _Step(label: '+100', color: color, onTap: () => onStep(100)),
-        ],
-      ),
-    );
-  }
-}
-
-class _Step extends StatelessWidget {
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-  final bool big;
-
-  const _Step({
-    required this.label,
-    required this.color,
-    required this.onTap,
-    this.big = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      flex: big ? 3 : 2,
-      child: ChunkyButton(
-        color: color,
-        onTap: onTap,
-        height: big ? 72 : 60,
-        radius: Radii.md,
-        child: Text(label,
-            style: TextStyle(fontSize: big ? 28 : 20)),
-      ),
-    );
-  }
-}
