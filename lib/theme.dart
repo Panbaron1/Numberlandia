@@ -5,24 +5,57 @@ class NColors {
   static const surface = Colors.white;
   static const ink = Color(0xFF1A1F36);
   static const inkSoft = Color(0xFF6B7280);
+  static const inkMuted = Color(0xFFB0B8C4);
 
-  // Activity card accent colors
-  static const million = Color(0xFF4F8EF7);    // blue
+  // Activity accent colors
+  static const million    = Color(0xFF4F8EF7); // blue
   static const numberLine = Color(0xFF2DC9A0); // teal
   static const timesTables = Color(0xFFFF8C42);
-  static const machine = Color(0xFFA78BFA);
-  static const doubling = Color(0xFFFF6B9D);
+  static const machine    = Color(0xFFA78BFA);
+  static const doubling   = Color(0xFFFF6B9D);
 
   static const primary = million;
-  static const zero = Color(0xFFFFCC00);       // gold for zero on number line
+  static const zero    = Color(0xFFFFCC00); // gold
+
+  // ── Original NumBlock palette ────────────────────────────────────────────
+  // Pastel-soft spectrum — NOT the Numberblocks saturated palette.
+  // Each number 0–10 gets its own character colour.
+  static const List<Color> numBlock = [
+    Color(0xFFB0BEC5), // 0 — cloud grey
+    Color(0xFFFF8A80), // 1 — coral
+    Color(0xFFFFAB40), // 2 — amber
+    Color(0xFFFFD740), // 3 — lemon
+    Color(0xFF69F0AE), // 4 — spring green
+    Color(0xFF40C4FF), // 5 — sky blue
+    Color(0xFF1DE9B6), // 6 — aqua
+    Color(0xFFB388FF), // 7 — lavender
+    Color(0xFFF48FB1), // 8 — rose
+    Color(0xFF7986CB), // 9 — periwinkle
+    Color(0xFFFFD600), // 10 — sunflower
+  ];
+
+  /// Returns the block colour for any integer n.
+  /// 0 → grey, 1–10 → unique, > 10 → cycles through 1–10.
+  static Color numBlockColor(int n) {
+    if (n == 0) return numBlock[0];
+    return numBlock[(n.abs() - 1) % 10 + 1];
+  }
+
+  // Gradient stops used for the home-screen wordmark
+  static const List<Color> brandGradient = [
+    Color(0xFF4F8EF7),
+    Color(0xFF2DC9A0),
+    Color(0xFFA78BFA),
+    Color(0xFFFF6B9D),
+  ];
 }
 
 class Gap {
-  static const xs = 6.0;
-  static const sm = 10.0;
-  static const md = 16.0;
-  static const lg = 24.0;
-  static const xl = 36.0;
+  static const xs  = 6.0;
+  static const sm  = 10.0;
+  static const md  = 16.0;
+  static const lg  = 24.0;
+  static const xl  = 36.0;
   static const xxl = 56.0;
 }
 
@@ -41,7 +74,6 @@ ThemeData buildNumberlandiaTheme() {
       surface: NColors.surface,
     ),
     scaffoldBackgroundColor: NColors.bg,
-    fontFamily: 'sans-serif',
     cardTheme: const CardThemeData(
       color: NColors.surface,
       elevation: 0,
@@ -59,9 +91,7 @@ ThemeData buildNumberlandiaTheme() {
   );
 }
 
-// Responsive grid columns
 int gridColumns(double width) {
-  if (width >= 900) return 3;
   if (width >= 600) return 3;
   return 2;
 }

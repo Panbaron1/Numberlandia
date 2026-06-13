@@ -20,60 +20,86 @@ class ActivityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Opacity(
-      opacity: live ? 1.0 : 0.55,
+      opacity: live ? 1.0 : 0.6,
       child: Material(
-        color: color.withAlpha(28),
+        color: NColors.surface,
         borderRadius: BorderRadius.circular(Radii.lg),
+        clipBehavior: Clip.antiAlias,
+        elevation: 0,
         child: InkWell(
-          borderRadius: BorderRadius.circular(Radii.lg),
-          onTap: live ? onTap : _handleComingSoon,
-          child: Padding(
-            padding: const EdgeInsets.all(Gap.lg),
+          onTap: live ? onTap : null, // silently no-op for coming-soon
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border.all(color: color.withAlpha(40), width: 1.5),
+              borderRadius: BorderRadius.circular(Radii.lg),
+            ),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: color.withAlpha(48),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(emoji,
-                        style: const TextStyle(fontSize: 36)),
-                  ),
-                ),
-                const SizedBox(height: Gap.md),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: live ? NColors.ink : NColors.inkSoft,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    height: 1.2,
-                  ),
-                ),
-                if (!live) ...[
-                  const SizedBox(height: Gap.xs),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: Gap.sm, vertical: 3),
+                // ── Coloured header ──────────────────────────────────
+                Expanded(
+                  flex: 5,
+                  child: Container(
                     decoration: BoxDecoration(
-                      color: NColors.inkSoft.withAlpha(24),
-                      borderRadius: BorderRadius.circular(Radii.sm),
-                    ),
-                    child: const Text(
-                      'Coming soon',
-                      style: TextStyle(
-                        color: NColors.inkSoft,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          color.withAlpha(220),
+                          color,
+                        ],
                       ),
                     ),
+                    child: Center(
+                      child: Text(emoji,
+                          style: const TextStyle(fontSize: 44)),
+                    ),
                   ),
-                ],
+                ),
+                // ── White label area ─────────────────────────────────
+                Expanded(
+                  flex: 3,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: Gap.sm, vertical: Gap.xs),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          title,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: live ? NColors.ink : NColors.inkSoft,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            height: 1.2,
+                          ),
+                        ),
+                        if (!live) ...[
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: color.withAlpha(20),
+                              borderRadius: BorderRadius.circular(Radii.sm),
+                            ),
+                            child: Text(
+                              'Coming soon',
+                              style: TextStyle(
+                                color: color,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -81,7 +107,4 @@ class ActivityCard extends StatelessWidget {
       ),
     );
   }
-
-  // Silently absorb tap — no error, no scary feedback
-  void _handleComingSoon() {}
 }

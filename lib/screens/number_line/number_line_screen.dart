@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/haptics_service.dart';
 import '../../theme.dart';
+import '../../widgets/num_block.dart';
 import 'number_line_notifier.dart';
 import 'number_line_painter.dart';
 
@@ -14,11 +15,8 @@ class NumberLineScreen extends StatefulWidget {
 
 class _NumberLineScreenState extends State<NumberLineScreen> {
   final _notifier = NumberLineNotifier();
-
-  // px per integer unit — determines zoom level
   static const double _pixelsPerUnit = 80.0;
-
-  int _lastFeedbackNumber = 0;
+  int _lastFeedback = 0;
 
   @override
   void dispose() {
@@ -32,30 +30,29 @@ class _NumberLineScreenState extends State<NumberLineScreen> {
     await AudioService.instance.playPop();
   }
 
-  Future<void> _onPanUpdate(DragUpdateDetails details) async {
-    // Convert pixel delta to number-space delta (inverted: drag right = lower numbers)
-    final numberDelta = -details.delta.dx / _pixelsPerUnit;
-    final prevNumber = _notifier.current;
-    _notifier.pan(numberDelta);
+  Future<void> _jumpToZero() async {
+    _notifier.jumpTo(0);
+    await HapticsService.instance.medium();
+    await AudioService.instance.playPop();
+  }
 
-    // Haptic tick each time the current number changes while dragging
-    if (_notifier.current != prevNumber &&
-        _notifier.current != _lastFeedbackNumber) {
-      _lastFeedbackNumber = _notifier.current;
+  Future<void> _onPanUpdate(DragUpdateDetails d) async {
+    final prev = _notifier.current;
+    _notifier.pan(-d.delta.dx / _pixelsPerUnit);
+    if (_notifier.current != prev && _notifier.current != _lastFeedback) {
+      _lastFeedback = _notifier.current;
       await HapticsService.instance.light();
     }
   }
 
   void _onPanEnd(DragEndDetails _) => _notifier.snapToCurrent();
 
-  // Compute which integer the user tapped on the painter canvas
-  void _onTapDown(TapDownDetails details, double canvasWidth) {
-    final centerX = canvasWidth / 2;
-    final dx = details.localPosition.dx - centerX;
-    final tapped = (_notifier.viewOffset + dx / _pixelsPerUnit).round();
-    final clamped =
-        tapped.clamp(NumberLineNotifier.minValue, NumberLineNotifier.maxValue);
-    _notifier.jumpTo(clamped);
+  void _onTapDown(TapDownDetails d, double canvasWidth) {
+    final dx = d.localPosition.dx - canvasWidth / 2;
+    final tapped = (_notifier.viewOffset + dx / _pixelsPerUnit)
+        .round()
+        .clamp(NumberLineNotifier.minValue, NumberLineNotifier.maxValue);
+    _notifier.jumpTo(tapped);
     HapticsService.instance.medium();
     AudioService.instance.playPop();
   }
@@ -64,58 +61,64 @@ class _NumberLineScreenState extends State<NumberLineScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: NColors.bg,
         leading: IconButton(
           iconSize: 28,
-          icon: const Icon(Icons.arrow_back_rounded),
+          icon: const Icon(Icons.arrow_back_rounded, color: NColors.ink),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text('Number Line'),
+        title: const Text('Number Line',
+            style: TextStyle(fontWeight: FontWeight.w800)),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: Gap.sm),
+            child: TextButton(
+              onPressed: _jumpToZero,
+              child: const Text('Go to 0',
+                  style: TextStyle(
+                      color: NColors.zero,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14)),
+            ),
+          ),
+        ],
       ),
       body: AnimatedBuilder(
         animation: _notifier,
-        builder: (context, _) {
-          return SafeArea(
-            child: Column(
-              children: [
-                // ── Facts panel ─────────────────────────────────────
-                _FactsPanel(notifier: _notifier),
-                const SizedBox(height: Gap.md),
-
-                // ── Number line canvas ───────────────────────────────
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return GestureDetector(
-                        onPanUpdate: _onPanUpdate,
-                        onPanEnd: _onPanEnd,
-                        onTapDown: (d) =>
-                            _onTapDown(d, constraints.maxWidth),
-                        child: CustomPaint(
-                          painter: NumberLinePainter(
-                            viewOffset: _notifier.viewOffset,
-                            current: _notifier.current,
-                            pixelsPerUnit: _pixelsPerUnit,
-                          ),
-                          size: Size(constraints.maxWidth, constraints.maxHeight),
-                        ),
-                      );
-                    },
+        builder: (context, _) => SafeArea(
+          child: Column(
+            children: [
+              _FactsPanel(notifier: _notifier),
+              // ── Number line canvas ─────────────────────────────────
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (ctx, constraints) => GestureDetector(
+                    onPanUpdate: _onPanUpdate,
+                    onPanEnd: _onPanEnd,
+                    onTapDown: (d) => _onTapDown(d, constraints.maxWidth),
+                    child: CustomPaint(
+                      painter: NumberLinePainter(
+                        viewOffset: _notifier.viewOffset,
+                        current: _notifier.current,
+                        pixelsPerUnit: _pixelsPerUnit,
+                      ),
+                      size: Size(constraints.maxWidth, constraints.maxHeight),
+                    ),
                   ),
                 ),
-
-                // ── Step controls ────────────────────────────────────
-                _StepControls(onStep: _step),
-                const SizedBox(height: Gap.xl),
-              ],
-            ),
-          );
-        },
+              ),
+              // ── Step controls ──────────────────────────────────────
+              _StepControls(onStep: _step),
+              const SizedBox(height: Gap.xl),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-// ────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _FactsPanel extends StatelessWidget {
   final NumberLineNotifier notifier;
@@ -124,102 +127,109 @@ class _FactsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final n = notifier.current;
-    final isZero = n == 0;
+    final abs = n.abs();
+    final showBlock = abs <= 9; // NumBlock for single-digit range
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(Gap.md, Gap.md, Gap.md, 0),
       child: Column(
         children: [
-          // Current number — large
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 120),
-            transitionBuilder: (child, anim) => ScaleTransition(
-              scale: anim,
-              child: child,
-            ),
-            child: Text(
-              n.toString(),
-              key: ValueKey(n),
-              style: TextStyle(
-                fontSize: 80,
-                fontWeight: FontWeight.w800,
-                color: isZero ? NColors.zero : NColors.ink,
-                letterSpacing: -3,
-                height: 1,
+          // ── Big number + optional NumBlock ──────────────────────────
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (showBlock) ...[
+                NumBlock(value: n, unit: 22, showSign: false),
+                const SizedBox(width: Gap.sm),
+              ],
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 110),
+                transitionBuilder: (child, anim) =>
+                    ScaleTransition(scale: anim, child: child),
+                child: Text(
+                  n.toString(),
+                  key: ValueKey(n),
+                  style: TextStyle(
+                    fontSize: showBlock ? 64 : 80,
+                    fontWeight: FontWeight.w900,
+                    color: n == 0
+                        ? NColors.zero
+                        : (n < 0 ? NColors.numberLine : NColors.ink),
+                    letterSpacing: -3,
+                    height: 1,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
           const SizedBox(height: Gap.md),
-          // Fact row
+          // ── Fact chips ───────────────────────────────────────────────
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _Fact(
+              _Chip(
                   label: 'One less',
                   value: notifier.prevNum.toString(),
                   color: NColors.numberLine),
-              const SizedBox(width: Gap.md),
-              _Fact(
+              const SizedBox(width: Gap.sm),
+              _Chip(
                   label: notifier.isEven ? 'Even' : 'Odd',
-                  value: notifier.isEven ? '2️⃣' : '1️⃣',
+                  value: notifier.isEven ? 'Even' : 'Odd',
                   color: NColors.machine),
-              const SizedBox(width: Gap.md),
-              _Fact(
+              const SizedBox(width: Gap.sm),
+              _Chip(
                   label: 'One more',
                   value: notifier.nextNum.toString(),
                   color: NColors.million),
             ],
           ),
+          const SizedBox(height: Gap.sm),
+          // ── Drag hint ────────────────────────────────────────────────
+          const Text(
+            'Drag • Tap a number • Use buttons below',
+            style: TextStyle(
+                fontSize: 11, color: NColors.inkSoft, fontWeight: FontWeight.w400),
+          ),
         ],
       ),
     );
   }
 }
 
-class _Fact extends StatelessWidget {
+class _Chip extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
 
-  const _Fact(
-      {required this.label, required this.value, required this.color});
+  const _Chip({required this.label, required this.value, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minWidth: 80),
-      padding: const EdgeInsets.symmetric(
-          horizontal: Gap.md, vertical: Gap.sm),
+      constraints: const BoxConstraints(minWidth: 72),
+      padding: const EdgeInsets.symmetric(horizontal: Gap.sm, vertical: Gap.xs),
       decoration: BoxDecoration(
-        color: color.withAlpha(24),
+        color: color.withAlpha(22),
         borderRadius: BorderRadius.circular(Radii.md),
+        border: Border.all(color: color.withAlpha(60), width: 1),
       ),
       child: Column(
         children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: color,
-            ),
-          ),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 18, fontWeight: FontWeight.w800, color: color)),
           const SizedBox(height: 2),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: NColors.inkSoft,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 10, color: NColors.inkSoft, fontWeight: FontWeight.w500)),
         ],
       ),
     );
   }
 }
 
-// ────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _StepControls extends StatelessWidget {
   final Future<void> Function(int) onStep;
@@ -228,51 +238,55 @@ class _StepControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Gap.md),
+      padding: const EdgeInsets.fromLTRB(Gap.md, 0, Gap.md, 0),
       child: Row(
         children: [
-          _StepBtn(label: '−10', delta: -10, onTap: onStep),
-          const SizedBox(width: Gap.sm),
-          _StepBtn(label: '−1', delta: -1, onTap: onStep, big: true),
-          const SizedBox(width: Gap.sm),
-          _StepBtn(label: '+1', delta: 1, onTap: onStep, big: true),
-          const SizedBox(width: Gap.sm),
-          _StepBtn(label: '+10', delta: 10, onTap: onStep),
+          _Btn(label: '−100', delta: -100, color: NColors.numberLine.withAlpha(180), onTap: onStep),
+          const SizedBox(width: Gap.xs),
+          _Btn(label: '−10', delta: -10, color: NColors.numberLine.withAlpha(210), onTap: onStep),
+          const SizedBox(width: Gap.xs),
+          _Btn(label: '−1', delta: -1, color: NColors.numberLine, onTap: onStep, big: true),
+          const SizedBox(width: Gap.xs),
+          _Btn(label: '+1', delta: 1, color: NColors.million, onTap: onStep, big: true),
+          const SizedBox(width: Gap.xs),
+          _Btn(label: '+10', delta: 10, color: NColors.million.withAlpha(210), onTap: onStep),
+          const SizedBox(width: Gap.xs),
+          _Btn(label: '+100', delta: 100, color: NColors.million.withAlpha(180), onTap: onStep),
         ],
       ),
     );
   }
 }
 
-class _StepBtn extends StatelessWidget {
+class _Btn extends StatelessWidget {
   final String label;
   final int delta;
+  final Color color;
   final Future<void> Function(int) onTap;
   final bool big;
 
-  const _StepBtn({
+  const _Btn({
     required this.label,
     required this.delta,
+    required this.color,
     required this.onTap,
     this.big = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final h = big ? 72.0 : 56.0;
-    final color = delta < 0 ? NColors.numberLine : NColors.million;
-
     return Expanded(
       flex: big ? 2 : 1,
       child: SizedBox(
-        height: h,
+        height: big ? 68 : 52,
         child: FilledButton(
           onPressed: () => onTap(delta),
           style: FilledButton.styleFrom(
             backgroundColor: color,
             foregroundColor: Colors.white,
+            padding: EdgeInsets.zero,
             textStyle: TextStyle(
-              fontSize: big ? 22 : 16,
+              fontSize: big ? 20 : 13,
               fontWeight: FontWeight.w800,
             ),
             shape: RoundedRectangleBorder(
