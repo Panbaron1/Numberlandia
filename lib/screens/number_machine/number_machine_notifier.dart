@@ -1,76 +1,72 @@
 import 'package:flutter/foundation.dart';
 
-enum MachineOp {
-  doubleIt,
-  tripleIt,
-  addTen,
-  subtractTen,
-  addHundred,
-  subtractHundred,
-}
+/// Simple two-operand kids calculator. No-fail by design: division is omitted,
+/// values are clamped, and there is no error state.
+class CalculatorNotifier extends ChangeNotifier {
+  static const int _limit = 100000;
 
-extension MachineOpX on MachineOp {
-  String get label => switch (this) {
-        MachineOp.doubleIt      => '× 2',
-        MachineOp.tripleIt      => '× 3',
-        MachineOp.addTen        => '+ 10',
-        MachineOp.subtractTen   => '− 10',
-        MachineOp.addHundred    => '+ 100',
-        MachineOp.subtractHundred => '− 100',
-      };
+  int _acc = 0;
+  String _entry = '0';
+  String? _op; // '+', '−', '×'
+  bool _fresh = true; // next digit starts a new entry
 
-  String get emoji => switch (this) {
-        MachineOp.doubleIt      => '🔁',
-        MachineOp.tripleIt      => '🔃',
-        MachineOp.addTen        => '➕',
-        MachineOp.subtractTen   => '➖',
-        MachineOp.addHundred    => '⬆️',
-        MachineOp.subtractHundred => '⬇️',
-      };
+  String get display => _entry;
+  String? get op => _op;
+  int get value => int.tryParse(_entry) ?? 0;
 
-  int apply(int n) => switch (this) {
-        MachineOp.doubleIt        => (n * 2).clamp(-999999, 999999),
-        MachineOp.tripleIt        => (n * 3).clamp(-999999, 999999),
-        MachineOp.addTen          => (n + 10).clamp(-999999, 999999),
-        MachineOp.subtractTen     => (n - 10).clamp(-999999, 999999),
-        MachineOp.addHundred      => (n + 100).clamp(-999999, 999999),
-        MachineOp.subtractHundred => (n - 100).clamp(-999999, 999999),
-      };
-}
-
-class NumberMachineNotifier extends ChangeNotifier {
-  int _input = 5;
-  MachineOp _op = MachineOp.doubleIt;
-  int? _output; // null = not yet run
-
-  int get input => _input;
-  MachineOp get op => _op;
-  int? get output => _output;
-
-  void setInput(int v) {
-    _input = v.clamp(-999, 999);
-    _output = null;
+  void digit(int d) {
+    if (_fresh) {
+      _entry = '$d';
+      _fresh = false;
+    } else if (_entry.replaceAll('-', '').length < 6) {
+      _entry = _entry == '0' ? '$d' : '$_entry$d';
+    }
     notifyListeners();
   }
 
-  void stepInput(int d) => setInput(_input + d);
-
-  void setOp(MachineOp op) {
+  void setOp(String op) {
+    _commit();
     _op = op;
-    _output = null;
+    _entry = '$_acc';
+    _fresh = true;
     notifyListeners();
   }
 
-  void run() {
-    _output = _op.apply(_input);
+  void equals() {
+    _commit();
+    _op = null;
+    _entry = '$_acc';
+    _fresh = true;
     notifyListeners();
   }
 
-  /// Feed the output back as the new input
-  void feedBack() {
-    if (_output == null) return;
-    _input = _output!.clamp(-999, 999);
-    _output = null;
+  void clear() {
+    _acc = 0;
+    _entry = '0';
+    _op = null;
+    _fresh = true;
     notifyListeners();
+  }
+
+  void backspace() {
+    if (_fresh) return;
+    _entry = _entry.length <= 1 ? '0' : _entry.substring(0, _entry.length - 1);
+    if (_entry.isEmpty || _entry == '-') _entry = '0';
+    notifyListeners();
+  }
+
+  void _commit() {
+    final e = int.tryParse(_entry) ?? 0;
+    if (_op == null) {
+      _acc = e;
+    } else {
+      _acc = switch (_op) {
+        '+' => _acc + e,
+        '−' => _acc - e,
+        '×' => _acc * e,
+        _ => e,
+      };
+    }
+    _acc = _acc.clamp(-_limit, _limit);
   }
 }
