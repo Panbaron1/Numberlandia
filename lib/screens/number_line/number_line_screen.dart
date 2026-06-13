@@ -140,7 +140,7 @@ class _FactsPanel extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (showBlock) ...[
-                NumBlock(value: n, unit: 22, showSign: false),
+                BouncyNumBlock(value: n, unit: 22, showSign: false),
                 const SizedBox(width: Gap.sm),
               ],
               AnimatedSwitcher(

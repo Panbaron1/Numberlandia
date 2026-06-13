@@ -236,12 +236,28 @@ class _PlaceBlock extends StatelessWidget {
         width: 58,
         height: 72,
         decoration: BoxDecoration(
-          color: count > 0 ? color.withAlpha(36) : NColors.bg,
+          gradient: count > 0
+              ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [color.withAlpha(70), color.withAlpha(36)],
+                )
+              : null,
+          color: count > 0 ? null : NColors.bg,
           borderRadius: BorderRadius.circular(Radii.sm),
           border: Border.all(
             color: count > 0 ? color : NColors.inkSoft.withAlpha(40),
             width: 2,
           ),
+          boxShadow: count > 0
+              ? [
+                  BoxShadow(
+                    color: color.withAlpha(50),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

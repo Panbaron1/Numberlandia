@@ -189,16 +189,27 @@ class _BlockGrid extends StatelessWidget {
                         width: cellSize,
                         height: cellSize,
                         decoration: BoxDecoration(
-                          color: color,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color.lerp(color, Colors.white, 0.18)!,
+                              color,
+                            ],
+                          ),
                           borderRadius: BorderRadius.circular(cellSize * 0.2),
                           boxShadow: [
                             BoxShadow(
-                              color: color.withAlpha(70),
+                              color: color.withAlpha(80),
                               blurRadius: 2,
                               offset: const Offset(0, 1),
                             ),
                           ],
                         ),
+                        // Top-left cell wears a little face — the array's mascot
+                        child: (row == 0 && col == 0 && cellSize >= 22)
+                            ? _MiniFace(size: cellSize)
+                            : null,
                       ),
                     ),
                   ],
@@ -216,6 +227,61 @@ class _BlockGrid extends StatelessWidget {
     final maxByWidth = (w - (b - 1) * 4) / b;
     return maxByWidth.clamp(14.0, 36.0);
   }
+}
+
+/// A tiny friendly face for the array's mascot cell (eyes + smile).
+class _MiniFace extends StatelessWidget {
+  final double size;
+  const _MiniFace({required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    final eye = size * 0.2;
+    return Padding(
+      padding: EdgeInsets.only(top: size * 0.18),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _dot(eye),
+              SizedBox(width: size * 0.14),
+              _dot(eye),
+            ],
+          ),
+          SizedBox(height: size * 0.08),
+          Container(
+            width: size * 0.32,
+            height: size * 0.15,
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                    color: NColors.ink.withAlpha(150), width: size * 0.05),
+              ),
+              borderRadius:
+                  BorderRadius.vertical(bottom: Radius.circular(size * 0.2)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dot(double eye) => Container(
+        width: eye,
+        height: eye,
+        decoration: const BoxDecoration(
+            color: Colors.white, shape: BoxShape.circle),
+        child: Center(
+          child: Container(
+            width: eye * 0.5,
+            height: eye * 0.5,
+            decoration:
+                const BoxDecoration(color: NColors.ink, shape: BoxShape.circle),
+          ),
+        ),
+      );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

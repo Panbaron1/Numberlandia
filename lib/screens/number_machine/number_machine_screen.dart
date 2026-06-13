@@ -175,7 +175,7 @@ class _InputPanel extends StatelessWidget {
         const SizedBox(width: Gap.md),
         Column(
           children: [
-            if (showBlock) NumBlock(value: n, unit: 20),
+            if (showBlock) BouncyNumBlock(value: n, unit: 20),
             if (showBlock) const SizedBox(height: 4),
             Text(
               '$n',

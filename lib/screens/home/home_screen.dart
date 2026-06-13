@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme.dart';
 import '../../widgets/activity_card.dart';
+import '../../widgets/num_block.dart';
 import '../../widgets/settings_sheet.dart';
 import '../build_a_million/build_a_million_screen.dart';
 import '../number_line/number_line_screen.dart';
@@ -129,9 +130,64 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: Gap.md),
+            // ── Buddies band — a shelf of number characters ──────────
+            const _BuddiesBand(),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// A friendly row of NumBlock characters standing on a shelf at the bottom
+/// of the home screen. Purely decorative — gives the app its mascots.
+class _BuddiesBand extends StatelessWidget {
+  const _BuddiesBand();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 88,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            NColors.bg,
+            NColors.million.withAlpha(16),
+          ],
+        ),
+      ),
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          // Shelf line
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 14,
+            child: Container(
+              height: 3,
+              margin: const EdgeInsets.symmetric(horizontal: Gap.lg),
+              decoration: BoxDecoration(
+                color: NColors.inkSoft.withAlpha(40),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          // Characters 1..5 standing on the shelf
+          Padding(
+            padding: const EdgeInsets.only(bottom: 17),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                for (int i = 1; i <= 5; i++)
+                  BouncyNumBlock(value: i, unit: 11, showSign: false),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
