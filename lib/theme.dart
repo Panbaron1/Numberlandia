@@ -13,6 +13,7 @@ class NColors {
   static const timesTables = Color(0xFFFF8C42);
   static const machine    = Color(0xFFA78BFA);
   static const doubling   = Color(0xFFFF6B9D);
+  static const addUp      = Color(0xFF34C759); // green
 
   static const primary = million;
   static const zero    = Color(0xFFFFCC00); // gold

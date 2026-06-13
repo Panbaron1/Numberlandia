@@ -3,6 +3,7 @@ import '../../theme.dart';
 import '../../widgets/activity_card.dart';
 import '../../widgets/num_block.dart';
 import '../../widgets/settings_sheet.dart';
+import '../add_up/add_up_screen.dart';
 import '../build_a_million/build_a_million_screen.dart';
 import '../number_line/number_line_screen.dart';
 import '../times_tables/times_tables_screen.dart';
@@ -154,6 +155,15 @@ class HomeScreen extends StatelessWidget {
                       onTap: () => Navigator.push(context,
                           MaterialPageRoute(
                               builder: (_) => const DoublingScreen())),
+                    ),
+                    ActivityCard(
+                      title: 'Add Up',
+                      assetImage: 'assets/cards/addup.png',
+                      color: NColors.addUp,
+                      live: true,
+                      onTap: () => Navigator.push(context,
+                          MaterialPageRoute(
+                              builder: (_) => const AddUpScreen())),
                     ),
                       ],
                     );
