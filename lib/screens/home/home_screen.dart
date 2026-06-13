@@ -98,7 +98,7 @@ class HomeScreen extends StatelessWidget {
                 child: LayoutBuilder(
                   builder: (context, c) {
                     const spacing = Gap.md;
-                    final rows = (5 / cols).ceil();
+                    final rows = (6 / cols).ceil();
                     final cellW = (c.maxWidth - (cols - 1) * spacing) / cols;
                     final cellH =
                         (c.maxHeight - (rows - 1) * spacing) / rows;
@@ -112,13 +112,22 @@ class HomeScreen extends StatelessWidget {
                       childAspectRatio: aspect,
                       children: [
                     ActivityCard(
-                      title: 'Build a Million',
-                      assetImage: 'assets/cards/million.png',
-                      color: NColors.million,
+                      title: 'Numberblocks',
+                      assetImage: 'assets/cards/numberblocks.png',
+                      color: NColors.machine,
                       live: true,
                       onTap: () => Navigator.push(context,
                           MaterialPageRoute(
-                              builder: (_) => const BuildAMillionScreen())),
+                              builder: (_) => const NumberMachineScreen())),
+                    ),
+                    ActivityCard(
+                      title: 'Add Up',
+                      assetImage: 'assets/cards/addup.png',
+                      color: NColors.addUp,
+                      live: true,
+                      onTap: () => Navigator.push(context,
+                          MaterialPageRoute(
+                              builder: (_) => const AddUpScreen())),
                     ),
                     ActivityCard(
                       title: 'Number Line',
@@ -130,24 +139,6 @@ class HomeScreen extends StatelessWidget {
                               builder: (_) => const NumberLineScreen())),
                     ),
                     ActivityCard(
-                      title: 'Times Tables',
-                      assetImage: 'assets/cards/timestables.png',
-                      color: NColors.timesTables,
-                      live: true,
-                      onTap: () => Navigator.push(context,
-                          MaterialPageRoute(
-                              builder: (_) => const TimesTablesScreen())),
-                    ),
-                    ActivityCard(
-                      title: 'Numberblocks',
-                      assetImage: 'assets/cards/machine.png',
-                      color: NColors.machine,
-                      live: true,
-                      onTap: () => Navigator.push(context,
-                          MaterialPageRoute(
-                              builder: (_) => const NumberMachineScreen())),
-                    ),
-                    ActivityCard(
                       title: 'Doubling',
                       assetImage: 'assets/cards/doubling.png',
                       color: NColors.doubling,
@@ -157,13 +148,22 @@ class HomeScreen extends StatelessWidget {
                               builder: (_) => const DoublingScreen())),
                     ),
                     ActivityCard(
-                      title: 'Add Up',
-                      assetImage: 'assets/cards/addup.png',
-                      color: NColors.addUp,
+                      title: 'Times Tables',
+                      assetImage: 'assets/cards/timestables.png',
+                      color: NColors.timesTables,
                       live: true,
                       onTap: () => Navigator.push(context,
                           MaterialPageRoute(
-                              builder: (_) => const AddUpScreen())),
+                              builder: (_) => const TimesTablesScreen())),
+                    ),
+                    ActivityCard(
+                      title: 'Build a Million',
+                      assetImage: 'assets/cards/million.png',
+                      color: NColors.million,
+                      live: true,
+                      onTap: () => Navigator.push(context,
+                          MaterialPageRoute(
+                              builder: (_) => const BuildAMillionScreen())),
                     ),
                       ],
                     );

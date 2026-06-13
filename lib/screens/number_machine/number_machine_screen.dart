@@ -47,7 +47,7 @@ class _NumberMachineScreenState extends State<NumberMachineScreen> {
       appBar: const RoomHeader(
         title: 'Numberblocks',
         color: NColors.machine,
-        assetImage: 'assets/cards/machine.png',
+        assetImage: 'assets/cards/numberblocks.png',
       ),
       body: AnimatedBuilder(
         animation: _n,
