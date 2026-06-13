@@ -216,7 +216,10 @@ class _RoundButtonState extends State<_RoundButton> {
 
   @override
   Widget build(BuildContext context) {
-    final base = Color.lerp(widget.color, Colors.black, 0.22)!;
+    // Light pastel gradient surface (Spectroom aesthetic) with black glyphs.
+    final top = Color.lerp(widget.color, Colors.white, 0.72)!;
+    final bottom = Color.lerp(widget.color, Colors.white, 0.52)!;
+    final base = Color.lerp(widget.color, Colors.white, 0.34)!; // 3D underside
     return GestureDetector(
       onTapDown: (_) => setState(() => _down = true),
       onTapUp: (_) => setState(() => _down = false),
@@ -236,23 +239,30 @@ class _RoundButtonState extends State<_RoundButton> {
             child: Container(
               margin: EdgeInsets.only(bottom: _down ? 0 : 4),
               decoration: BoxDecoration(
-                gradient: vividGradient(widget.color),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [top, bottom],
+                ),
                 shape: BoxShape.circle,
                 border: widget.highlighted
-                    ? Border.all(color: Colors.white, width: 3)
+                    ? Border.all(color: widget.color, width: 3)
                     : null,
               ),
               child: Center(
                 child: widget.icon != null
-                    ? Icon(widget.icon, color: Colors.white, size: 26)
+                    ? Icon(widget.icon, color: NColors.ink, size: 38)
                     : FittedBox(
                         fit: BoxFit.scaleDown,
-                        child: Text(
-                          widget.label!,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 30,
-                            fontWeight: FontWeight.w800,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: Text(
+                            widget.label!,
+                            style: const TextStyle(
+                              color: NColors.ink,
+                              fontSize: 44,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ),
