@@ -1,19 +1,23 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../theme.dart';
 
-/// An original "number character" — a tower of N coloured unit squares
-/// with a friendly face on the top block (eyes + smile).
+/// An original "number character" — N unit squares packed into a compact,
+/// near-square block (like real number characters: 4 = 2×2, 9 = 3×3,
+/// 6 = 2×3, 8 = 2×4). Composite numbers form clean rectangles; primes form
+/// a balanced ragged grid (5 = 3+2, 7 = 3+3+1). The top-left unit wears a
+/// friendly face; the bottom-right unit shows the count.
 ///
 /// Each number 0–10 has its own pastel colour (see NColors.numBlock).
-/// Numbers 11–20 tile into two columns; > 20 shows a compact badge.
-/// Negative numbers show the character of abs(n) with a "−" badge.
+/// Zero is a hollow ring with a face. Negatives show abs(n) with a "−" badge.
+/// Values above 100 fall back to a compact numbered badge.
 ///
 /// Original design — not affiliated with or derived from any existing IP.
 class NumBlock extends StatelessWidget {
   final int value;
-  final double unit;     // size of one square, default 26
+  final double unit;     // size of one square
   final bool showSign;   // show "−" label for negatives
-  final bool face;       // draw eyes + smile on the top block
+  final bool face;       // draw a face on the top-left block
 
   const NumBlock({
     super.key,
@@ -23,21 +27,42 @@ class NumBlock extends StatelessWidget {
     this.face = true,
   });
 
+  /// Row lengths (top → bottom) that pack [n] into a near-square block.
+  static List<int> rowsFor(int n) {
+    if (n <= 1) return [n];
+    // Largest divisor <= sqrt(n) → clean rectangle for composites.
+    final root = math.sqrt(n).floor();
+    for (int d = root; d >= 2; d--) {
+      if (n % d == 0) {
+        final cols = n ~/ d;
+        return List.filled(d, cols); // d rows of `cols`
+      }
+    }
+    // Prime (or n with no small divisor): balanced ragged grid.
+    final cols = math.sqrt(n).ceil();
+    final out = <int>[];
+    int rem = n;
+    while (rem > 0) {
+      final len = rem >= cols ? cols : rem;
+      out.add(len);
+      rem -= len;
+    }
+    return out;
+  }
+
   @override
   Widget build(BuildContext context) {
     final abs = value.abs();
     final color = NColors.numBlockColor(abs);
     final isNeg = value < 0;
 
-    Widget tower;
+    Widget block;
     if (abs == 0) {
-      tower = _ZeroBlock(unit: unit, color: color, face: face);
-    } else if (abs <= 10) {
-      tower = _singleColumn(abs, color, faceOnTop: face);
-    } else if (abs <= 20) {
-      tower = _doubleColumn(abs, color);
+      block = _ZeroBlock(unit: unit, color: color, face: face);
+    } else if (abs <= 100) {
+      block = _grid(abs, color);
     } else {
-      tower = _badge(abs, color);
+      block = _badge(abs, color);
     }
 
     if (isNeg && showSign) {
@@ -50,51 +75,58 @@ class NumBlock extends StatelessWidget {
               color: color.withAlpha(40),
               borderRadius: BorderRadius.circular(6),
             ),
-            child: Text(
-              '−',
-              style: TextStyle(
-                fontSize: unit * 0.55,
-                fontWeight: FontWeight.w900,
-                color: color,
-                height: 1,
-              ),
-            ),
+            child: Text('−',
+                style: TextStyle(
+                    fontSize: unit * 0.55,
+                    fontWeight: FontWeight.w900,
+                    color: color,
+                    height: 1)),
           ),
           const SizedBox(height: 3),
-          tower,
+          block,
         ],
       );
     }
-    return tower;
+    return block;
   }
 
-  Widget _singleColumn(int n, Color color, {required bool faceOnTop}) {
+  Widget _grid(int n, Color color) {
+    final rows = rowsFor(n);
+    final gap = unit * 0.08;
+    final maxCols = rows.reduce(math.max);
+    final fullWidth = maxCols * unit + (maxCols - 1) * gap;
+    // Index of the last cell (bottom-right) for the count label.
+    final lastRow = rows.length - 1;
+    final lastCol = rows[lastRow] - 1;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        for (int i = 0; i < n; i++) ...[
-          if (i > 0) SizedBox(height: unit * 0.08),
-          _Square(
-            size: unit,
-            color: color,
-            // top block (i == 0) carries the face; bottom carries the count
-            face: faceOnTop && i == 0,
-            label: i == n - 1 ? '$n' : null,
+        for (int r = 0; r < rows.length; r++) ...[
+          if (r > 0) SizedBox(height: gap),
+          // Centre partial rows under the full-width rows.
+          SizedBox(
+            width: fullWidth,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (int c = 0; c < rows[r]; c++) ...[
+                  if (c > 0) SizedBox(width: gap),
+                  _Square(
+                    size: unit,
+                    color: color,
+                    face: face && r == 0 && c == 0,
+                    // Count on the bottom-right block (unless it's the face
+                    // block, e.g. n == 1).
+                    label: (r == lastRow && c == lastCol && !(r == 0 && c == 0))
+                        ? '$n'
+                        : null,
+                  ),
+                ],
+              ],
+            ),
           ),
         ],
-      ],
-    );
-  }
-
-  Widget _doubleColumn(int n, Color color) {
-    final right = n - 10;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        _singleColumn(10, color, faceOnTop: face),
-        SizedBox(width: unit * 0.1),
-        _singleColumn(right, color, faceOnTop: false),
       ],
     );
   }
@@ -107,14 +139,11 @@ class NumBlock extends StatelessWidget {
         borderRadius: BorderRadius.circular(Radii.sm),
         border: Border.all(color: color, width: 2),
       ),
-      child: Text(
-        '$n',
-        style: TextStyle(
-          fontSize: unit * 0.65,
-          fontWeight: FontWeight.w900,
-          color: color,
-        ),
-      ),
+      child: Text('$n',
+          style: TextStyle(
+              fontSize: unit * 0.65,
+              fontWeight: FontWeight.w900,
+              color: color)),
     );
   }
 }
@@ -124,8 +153,8 @@ class NumBlock extends StatelessWidget {
 class _Square extends StatelessWidget {
   final double size;
   final Color color;
-  final String? label; // count, shown in the bottom square
-  final bool face;     // eyes + smile, shown on the top square
+  final String? label; // count, shown on the bottom-right square
+  final bool face;     // eyes + smile, shown on the top-left square
 
   const _Square({
     required this.size,
@@ -143,10 +172,7 @@ class _Square extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color.lerp(color, Colors.white, 0.18)!,
-            color,
-          ],
+          colors: [Color.lerp(color, Colors.white, 0.18)!, color],
         ),
         borderRadius: BorderRadius.circular(size * 0.2),
         boxShadow: [
@@ -161,16 +187,12 @@ class _Square extends StatelessWidget {
           ? _Face(size: size)
           : (label != null
               ? Center(
-                  child: Text(
-                    label!,
-                    style: TextStyle(
-                      fontSize: size * 0.42,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      height: 1,
-                    ),
-                  ),
-                )
+                  child: Text(label!,
+                      style: TextStyle(
+                          fontSize: size * 0.42,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          height: 1)))
               : null),
     );
   }
@@ -186,7 +208,7 @@ class _Face extends StatelessWidget {
     final eye = size * 0.22;
     final pupil = eye * 0.5;
     return Padding(
-      padding: EdgeInsets.only(top: size * 0.16),
+      padding: EdgeInsets.only(top: size * 0.14),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -198,21 +220,17 @@ class _Face extends StatelessWidget {
               _Eye(eye: eye, pupil: pupil),
             ],
           ),
-          SizedBox(height: size * 0.08),
-          // Smile
+          SizedBox(height: size * 0.07),
           Container(
             width: size * 0.34,
-            height: size * 0.17,
+            height: size * 0.16,
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
-                  color: NColors.ink.withAlpha(160),
-                  width: size * 0.05,
-                ),
+                    color: NColors.ink.withAlpha(160), width: size * 0.05),
               ),
-              borderRadius: BorderRadius.vertical(
-                bottom: Radius.circular(size * 0.2),
-              ),
+              borderRadius:
+                  BorderRadius.vertical(bottom: Radius.circular(size * 0.2)),
             ),
           ),
         ],
@@ -232,24 +250,20 @@ class _Eye extends StatelessWidget {
       width: eye,
       height: eye,
       decoration: const BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-      ),
+          color: Colors.white, shape: BoxShape.circle),
       child: Center(
         child: Container(
           width: pupil,
           height: pupil,
           decoration: const BoxDecoration(
-            color: NColors.ink,
-            shape: BoxShape.circle,
-          ),
+              color: NColors.ink, shape: BoxShape.circle),
         ),
       ),
     );
   }
 }
 
-/// Zero is special — a hollow ring with a face, not a tower.
+/// Zero is special — a hollow ring with a face, not a block.
 class _ZeroBlock extends StatelessWidget {
   final double unit;
   final Color color;
@@ -274,16 +288,14 @@ class _ZeroBlock extends StatelessWidget {
                   style: TextStyle(
                       fontSize: unit * 0.5,
                       fontWeight: FontWeight.w900,
-                      color: color)),
-            ),
+                      color: color))),
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// A NumBlock that bounces in when it first appears, and re-bounces
-/// whenever its [value] changes. Wraps NumBlock with a spring scale.
+/// A NumBlock that springs in on appear and re-bounces when its value changes.
 class BouncyNumBlock extends StatefulWidget {
   final int value;
   final double unit;
@@ -330,9 +342,8 @@ class _BouncyNumBlockState extends State<BouncyNumBlock>
   @override
   Widget build(BuildContext context) {
     return ScaleTransition(
-      scale: Tween(begin: 0.7, end: 1.0).animate(
-        CurvedAnimation(parent: _c, curve: Curves.elasticOut),
-      ),
+      scale: Tween(begin: 0.7, end: 1.0)
+          .animate(CurvedAnimation(parent: _c, curve: Curves.elasticOut)),
       child: NumBlock(
         value: widget.value,
         unit: widget.unit,

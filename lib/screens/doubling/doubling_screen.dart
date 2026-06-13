@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/haptics_service.dart';
@@ -123,11 +124,15 @@ class _TowerView extends StatelessWidget {
     final c1 = NColors.numBlockColor(n);
     final c2 = NColors.numBlockColor(d);
 
-    // Dynamic unit size: fit both towers in available space
-    final screenH = MediaQuery.of(context).size.height;
-    final availH = screenH * 0.35;
-    // The doubled tower has d units. Unit = availH / d clamped nicely.
-    final unit = (availH / d).clamp(20.0, 42.0);
+    // Dynamic unit size: fit both square-packed blocks in the available space.
+    // Height is driven by the number of rows in the (taller) doubled block,
+    // and width by its widest row — clamp to whichever is tighter.
+    final size = MediaQuery.of(context).size;
+    final rows = NumBlock.rowsFor(d).length;
+    final cols = NumBlock.rowsFor(d).first;
+    final byHeight = (size.height * 0.42) / (rows + 0.6);
+    final byWidth = (size.width * 0.40) / (cols + 0.6);
+    final unit = math.min(byHeight, byWidth).clamp(20.0, 54.0).toDouble();
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
