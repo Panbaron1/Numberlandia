@@ -1,25 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../theme.dart';
 
-/// Virtualized number line painter.
+/// A thick, colourful number-line slider.
 ///
-/// Only ticks in the visible viewport are drawn — never the full 2M range.
-/// At pixelsPerUnit=80, a 1200px tablet shows ~15 ticks maximum.
-///
-/// Visual zones:
-///   Negative side — soft teal wash (NColors.numberLine)
-///   Zero          — gold circle + tall tick
-///   Positive side — soft blue wash (NColors.million)
+/// Virtualized: only ticks in the visible viewport are drawn — never the full
+/// 2M range. The track is a fat rounded bar, teal on the negative side and blue
+/// on the positive side, split at a gold zero. A large round thumb sits on the
+/// current number.
 class NumberLinePainter extends CustomPainter {
   final double viewOffset;    // number-space position of viewport centre
   final int current;
   final double pixelsPerUnit;
 
-  static const double _axisY     = 0.58; // fraction of height for axis
-  static const double _tickMajor = 32.0; // multiples of 10
-  static const double _tickMinor = 18.0; // other integers
-  static const double _tickZero  = 48.0; // zero
-  static const double _tickCur   = 36.0; // current (if not 0 or ×10)
+  static const double _trackH = 22.0; // thick track
+  static const double _tickMajor = 22.0;
+  static const double _tickMinor = 12.0;
 
   const NumberLinePainter({
     required this.viewOffset,
@@ -29,153 +24,103 @@ class NumberLinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final cy = size.height * _axisY;
+    final cy = size.height * 0.5;
     final zeroX = size.width / 2 - viewOffset * pixelsPerUnit;
 
-    // ── Background colour zones ───────────────────────────────────────────
-    _paintZones(canvas, size, cy, zeroX);
-
-    // ── Axis line ─────────────────────────────────────────────────────────
-    canvas.drawLine(
-      Offset(0, cy),
-      Offset(size.width, cy),
-      Paint()
-        ..color = NColors.inkSoft.withAlpha(60)
-        ..strokeWidth = 2.5,
-    );
-
-    // ── Compute visible range ─────────────────────────────────────────────
+    // ── Ticks above the track (drawn first, behind) ───────────────────────
     final half = (size.width / 2) / pixelsPerUnit;
     final first = (viewOffset - half - 2).floor().clamp(-1000000, 1000000);
-    final last  = (viewOffset + half + 2).ceil().clamp(-1000000, 1000000);
-
-    // ── Ticks + labels ────────────────────────────────────────────────────
-    final tickPaint = Paint()..strokeWidth = 2.5;
+    final last = (viewOffset + half + 2).ceil().clamp(-1000000, 1000000);
+    final tickPaint = Paint()
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round;
 
     for (int n = first; n <= last; n++) {
+      if (n % 5 != 0 && pixelsPerUnit < 70) continue; // thin out when zoomed out
       final x = size.width / 2 + (n - viewOffset) * pixelsPerUnit;
-
-      double tickH;
-      Color tickColor;
-
-      if (n == 0) {
-        tickH = _tickZero;
-        tickColor = NColors.zero;
-      } else if (n == current && n % 10 != 0) {
-        tickH = _tickCur;
-        tickColor = n < 0 ? NColors.numberLine : NColors.million;
-      } else if (n % 10 == 0) {
-        tickH = _tickMajor;
-        tickColor = n < 0
-            ? NColors.numberLine.withAlpha(180)
-            : NColors.million.withAlpha(180);
-      } else {
-        tickH = _tickMinor;
-        tickColor = NColors.inkSoft.withAlpha(90);
-      }
-
-      // Brighten further for the current position
-      if (n == current && n != 0) tickColor = tickColor.withAlpha(255);
-
-      tickPaint.color = tickColor;
+      final major = n % 10 == 0;
+      final h = n == 0 ? _tickMajor + 8 : (major ? _tickMajor : _tickMinor);
+      tickPaint.color = n == 0
+          ? NColors.zero
+          : (n < 0
+              ? NColors.numberLine.withAlpha(major ? 200 : 110)
+              : NColors.million.withAlpha(major ? 200 : 110));
       canvas.drawLine(
-        Offset(x, cy - tickH / 2),
-        Offset(x, cy + tickH / 2),
+        Offset(x, cy - _trackH / 2 - 6 - h),
+        Offset(x, cy - _trackH / 2 - 6),
         tickPaint,
       );
-
-      // Labels
-      final showLabel = n == 0 ||
-          n == current ||
-          n % 10 == 0 ||
-          (pixelsPerUnit >= 110 && n % 5 == 0);
-
-      if (showLabel) {
-        final style = _labelStyle(n);
-        _drawText(canvas, n.toString(), x, cy + tickH / 2 + 5, style);
+      if (n == 0 || major) {
+        _label(canvas, '$n', x, cy - _trackH / 2 - 10 - h, n);
       }
     }
 
-    // ── Zero circle ───────────────────────────────────────────────────────
-    if (zeroX >= -20 && zeroX <= size.width + 20) {
-      canvas.drawCircle(
-        Offset(zeroX, cy),
-        7,
+    // ── The thick track ───────────────────────────────────────────────────
+    final trackRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, cy - _trackH / 2, size.width, _trackH),
+      const Radius.circular(_trackH / 2),
+    );
+    canvas.save();
+    canvas.clipRRect(trackRect);
+    // Negative half (teal) and positive half (blue), split at zero.
+    final clampedZero = zeroX.clamp(0.0, size.width);
+    canvas.drawRect(
+      Rect.fromLTRB(0, cy - _trackH / 2, clampedZero, cy + _trackH / 2),
+      Paint()..shader = const LinearGradient(
+              colors: [Color(0xFF1FB89A), NColors.numberLine])
+          .createShader(Rect.fromLTWH(0, cy - _trackH / 2, size.width, _trackH)),
+    );
+    canvas.drawRect(
+      Rect.fromLTRB(clampedZero, cy - _trackH / 2, size.width, cy + _trackH / 2),
+      Paint()..shader = const LinearGradient(
+              colors: [NColors.million, Color(0xFF7FB2FF)])
+          .createShader(Rect.fromLTWH(0, cy - _trackH / 2, size.width, _trackH)),
+    );
+    canvas.restore();
+
+    // Zero gold band on the track
+    if (zeroX >= -8 && zeroX <= size.width + 8) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(
+              center: Offset(zeroX, cy), width: 10, height: _trackH),
+          const Radius.circular(5),
+        ),
         Paint()..color = NColors.zero,
       );
     }
 
-    // ── Current-number marker (downward triangle) ─────────────────────────
+    // ── Thumb on the current number ───────────────────────────────────────
     final curX = size.width / 2 + (current - viewOffset) * pixelsPerUnit;
-    final markerColor = current == 0
+    final thumbColor = current == 0
         ? NColors.zero
         : (current < 0 ? NColors.numberLine : NColors.million);
-    _drawMarker(canvas, curX, cy - _markerTop(current), markerColor);
+    // White halo + coloured core
+    canvas.drawCircle(Offset(curX, cy), 20, Paint()..color = Colors.white);
+    canvas.drawCircle(
+        Offset(curX, cy),
+        20,
+        Paint()
+          ..color = thumbColor.withAlpha(60)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2);
+    canvas.drawCircle(Offset(curX, cy), 14, Paint()..color = thumbColor);
+    canvas.drawCircle(Offset(curX, cy), 5, Paint()..color = Colors.white);
   }
 
-  double _markerTop(int n) {
-    if (n == 0) return _tickZero / 2 + 6;
-    if (n % 10 == 0) return _tickMajor / 2 + 6;
-    if (n == current) return _tickCur / 2 + 6;
-    return _tickMinor / 2 + 6;
-  }
-
-  void _paintZones(Canvas canvas, Size size, double cy, double zeroX) {
-    // Negative zone (left of zero) — teal wash
-    if (zeroX > 0) {
-      canvas.drawRect(
-        Rect.fromLTRB(0, 0, zeroX.clamp(0, size.width), cy),
-        Paint()..color = NColors.numberLine.withAlpha(14),
-      );
-    }
-    // Positive zone (right of zero) — blue wash
-    if (zeroX < size.width) {
-      canvas.drawRect(
-        Rect.fromLTRB(zeroX.clamp(0, size.width), 0, size.width, cy),
-        Paint()..color = NColors.million.withAlpha(14),
-      );
-    }
-  }
-
-  TextStyle _labelStyle(int n) {
-    if (n == 0) {
-      return const TextStyle(
-        color: NColors.zero,
-        fontSize: 13,
-        fontWeight: FontWeight.w800,
-      );
-    }
-    if (n == current) {
-      return TextStyle(
-        color: n < 0 ? NColors.numberLine : NColors.million,
-        fontSize: 13,
-        fontWeight: FontWeight.w800,
-      );
-    }
-    return TextStyle(
-      color: n < 0
-          ? NColors.numberLine.withAlpha(180)
-          : NColors.inkSoft.withAlpha(180),
-      fontSize: 11,
-      fontWeight: FontWeight.w500,
+  void _label(Canvas canvas, String text, double x, double bottomY, int n) {
+    final style = TextStyle(
+      color: n == 0
+          ? NColors.zero
+          : (n < 0 ? NColors.numberLine : NColors.inkSoft),
+      fontSize: 12,
+      fontWeight: n == 0 ? FontWeight.w800 : FontWeight.w600,
     );
-  }
-
-  void _drawText(Canvas canvas, String text, double x, double y, TextStyle style) {
     final tp = TextPainter(
       text: TextSpan(text: text, style: style),
       textDirection: TextDirection.ltr,
     )..layout();
-    tp.paint(canvas, Offset(x - tp.width / 2, y));
-  }
-
-  void _drawMarker(Canvas canvas, double x, double top, Color color) {
-    final path = Path()
-      ..moveTo(x, top + 12) // tip pointing down toward the axis
-      ..lineTo(x - 9, top)
-      ..lineTo(x + 9, top)
-      ..close();
-    canvas.drawPath(path, Paint()..color = color);
+    tp.paint(canvas, Offset(x - tp.width / 2, bottomY - tp.height));
   }
 
   @override

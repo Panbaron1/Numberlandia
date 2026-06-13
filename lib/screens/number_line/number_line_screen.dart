@@ -82,8 +82,17 @@ class _NumberLineScreenState extends State<NumberLineScreen> {
           child: Column(
             children: [
               _FactsPanel(notifier: _notifier),
-              // ── Number line canvas ─────────────────────────────────
+              // ── Numberblock view (scales to 100×100 = 10,000) ──────
               Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Gap.lg, vertical: Gap.sm),
+                  child: NumBlockView(value: _notifier.current),
+                ),
+              ),
+              // ── Thick colourful slider ─────────────────────────────
+              SizedBox(
+                height: 120,
                 child: LayoutBuilder(
                   builder: (ctx, constraints) => GestureDetector(
                     onPanUpdate: _onPanUpdate,
@@ -102,7 +111,7 @@ class _NumberLineScreenState extends State<NumberLineScreen> {
               ),
               // ── Step controls ──────────────────────────────────────
               _StepControls(onStep: _step),
-              const SizedBox(height: Gap.xl),
+              const SizedBox(height: Gap.lg),
             ],
           ),
         ),
@@ -120,43 +129,31 @@ class _FactsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final n = notifier.current;
-    final abs = n.abs();
-    final showBlock = abs <= 9; // NumBlock for single-digit range
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Gap.md, Gap.md, Gap.md, 0),
+      padding: const EdgeInsets.fromLTRB(Gap.md, Gap.sm, Gap.md, 0),
       child: Column(
         children: [
-          // ── Big number + optional NumBlock ──────────────────────────
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (showBlock) ...[
-                BouncyNumBlock(value: n, unit: 28, showSign: false),
-                const SizedBox(width: Gap.md),
-              ],
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 110),
-                transitionBuilder: (child, anim) =>
-                    ScaleTransition(scale: anim, child: child),
-                child: Text(
-                  n.toString(),
-                  key: ValueKey(n),
-                  style: TextStyle(
-                    fontSize: showBlock ? 64 : 80,
-                    fontWeight: FontWeight.w900,
-                    color: n == 0
-                        ? NColors.zero
-                        : (n < 0 ? NColors.numberLine : NColors.ink),
-                    letterSpacing: -3,
-                    height: 1,
-                  ),
-                ),
+          // ── Big current number ──────────────────────────────────────
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 110),
+            transitionBuilder: (child, anim) =>
+                ScaleTransition(scale: anim, child: child),
+            child: Text(
+              n.toString(),
+              key: ValueKey(n),
+              style: TextStyle(
+                fontSize: 60,
+                fontWeight: FontWeight.w800,
+                color: n == 0
+                    ? NColors.zero
+                    : (n < 0 ? NColors.numberLine : NColors.ink),
+                letterSpacing: -2,
+                height: 1,
               ),
-            ],
+            ),
           ),
-          const SizedBox(height: Gap.md),
+          const SizedBox(height: Gap.sm),
           // ── Fact chips ───────────────────────────────────────────────
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

@@ -293,6 +293,109 @@ class _ZeroBlock extends StatelessWidget {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+/// Renders [value] as a number-character block sized to fill the given box.
+/// Small values (≤ 100 units) use the widget NumBlock with faces; larger values
+/// (up to 10,000 = 100×100) switch to a pure-canvas painter for performance.
+class NumBlockView extends StatelessWidget {
+  final int value;
+  final bool face;
+  const NumBlockView({super.key, required this.value, this.face = true});
+
+  static const int maxUnits = 10000; // 100 × 100
+
+  @override
+  Widget build(BuildContext context) {
+    final abs = value.abs();
+    if (abs > maxUnits) {
+      return Center(
+        child: Text('$value',
+            style: TextStyle(
+                fontSize: 64,
+                fontWeight: FontWeight.w800,
+                color: NColors.numBlockColor(abs))),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, c) {
+        final dims = NumBlock.dimsFor(abs == 0 ? 0 : abs);
+        final rows = dims[0].clamp(1, 100);
+        final cols = dims[1].clamp(1, 100);
+        // Fit a unit cell to the box (leave a little margin).
+        final boxW = c.maxWidth * 0.9;
+        final boxH = c.maxHeight * 0.9;
+        final unit = math.min(boxW / cols, boxH / rows);
+
+        // Small numbers: charming widget version with faces.
+        if (abs <= 100 && unit >= 14) {
+          return Center(
+            child: NumBlock(value: value, unit: unit.clamp(14, 64).toDouble(),
+                face: face),
+          );
+        }
+        // Large numbers: fast canvas grid.
+        return Center(
+          child: CustomPaint(
+            size: Size(boxW, boxH),
+            painter: NumBlockPainter(
+              rows: rows,
+              cols: cols,
+              color: NColors.numBlockColor(abs),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Pure-canvas grid of [rows]×[cols] squares, centred and fit to the box.
+/// Handles up to 100×100 = 10,000 cells with no per-cell widgets.
+class NumBlockPainter extends CustomPainter {
+  final int rows;
+  final int cols;
+  final Color color;
+
+  const NumBlockPainter(
+      {required this.rows, required this.cols, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (rows <= 0 || cols <= 0) return;
+    final density = rows * cols;
+    final gap = density > 400 ? 1.0 : (density > 100 ? 2.0 : 4.0);
+    final byW = (size.width - (cols - 1) * gap) / cols;
+    final byH = (size.height - (rows - 1) * gap) / rows;
+    final cell = byW < byH ? byW : byH;
+    final gridW = cols * cell + (cols - 1) * gap;
+    final gridH = rows * cell + (rows - 1) * gap;
+    final ox = (size.width - gridW) / 2;
+    final oy = (size.height - gridH) / 2;
+
+    final fill = Paint()..color = color;
+    final rounded = cell > 5;
+    final radius = Radius.circular(cell * 0.2);
+
+    for (int r = 0; r < rows; r++) {
+      for (int col = 0; col < cols; col++) {
+        final rect = Rect.fromLTWH(
+            ox + col * (cell + gap), oy + r * (cell + gap), cell, cell);
+        if (rounded) {
+          canvas.drawRRect(RRect.fromRectAndRadius(rect, radius), fill);
+        } else {
+          canvas.drawRect(rect, fill);
+        }
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(NumBlockPainter old) =>
+      old.rows != rows || old.cols != cols || old.color != color;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 /// A NumBlock that springs in on appear and re-bounces when its value changes.
 class BouncyNumBlock extends StatefulWidget {
   final int value;
