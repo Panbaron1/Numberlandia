@@ -69,6 +69,9 @@ def plus(d, cx, cy, r=46, w=30, color=INK_SOFT):
     d.rounded_rectangle([cx - r, cy - w / 2, cx + r, cy + w / 2], radius=w / 2, fill=color)
     d.rounded_rectangle([cx - w / 2, cy - r, cx + w / 2, cy + r], radius=w / 2, fill=color)
 
+def minus(d, cx, cy, r=46, w=30, color=INK_SOFT):
+    d.rounded_rectangle([cx - r, cy - w / 2, cx + r, cy + w / 2], radius=w / 2, fill=color)
+
 def arrow(d, x0, x1, cy, w=26, color=INK_SOFT):
     d.rounded_rectangle([x0, cy - w / 2, x1, cy + w / 2], radius=w / 2, fill=color)
     d.polygon([(x1, cy - w * 1.5), (x1 + w * 1.6, cy), (x1, cy + w * 1.5)], fill=color)
@@ -139,6 +142,13 @@ for i in range(count):
     y = oy + i * (unit + GAP)
     square(d, cx - unit / 2, y, million, unit, drawface=(i == 0))
 save(img, "million")
+
+# ── take away: 5 − 2 ────────────────────────────────────────────────────────
+img, d = canvas()
+block(d, 175, 440, 5, unit=78)
+minus(d, 300, 300)
+block(d, 430, 440, 2, unit=86)
+save(img, "takeaway")
 
 # ── clock: digital time made of numberblocks (1 2 : 3 0) ────────────────────
 img, d = canvas()

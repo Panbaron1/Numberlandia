@@ -7,6 +7,7 @@ import '../add_up/add_up_screen.dart';
 import '../build_a_million/build_a_million_screen.dart';
 import '../clock/clock_screen.dart';
 import '../number_line/number_line_screen.dart';
+import '../take_away/take_away_screen.dart';
 import '../times_tables/times_tables_screen.dart';
 import '../number_machine/number_machine_screen.dart';
 import '../doubling/doubling_screen.dart';
@@ -99,7 +100,7 @@ class HomeScreen extends StatelessWidget {
                 child: LayoutBuilder(
                   builder: (context, c) {
                     const spacing = Gap.md;
-                    final rows = (7 / cols).ceil();
+                    final rows = (8 / cols).ceil();
                     final cellW = (c.maxWidth - (cols - 1) * spacing) / cols;
                     final cellH =
                         (c.maxHeight - (rows - 1) * spacing) / rows;
@@ -129,6 +130,15 @@ class HomeScreen extends StatelessWidget {
                       onTap: () => Navigator.push(context,
                           MaterialPageRoute(
                               builder: (_) => const AddUpScreen())),
+                    ),
+                    ActivityCard(
+                      title: 'Take Away',
+                      assetImage: 'assets/cards/takeaway.png',
+                      color: NColors.takeAway,
+                      live: true,
+                      onTap: () => Navigator.push(context,
+                          MaterialPageRoute(
+                              builder: (_) => const TakeAwayScreen())),
                     ),
                     ActivityCard(
                       title: 'Number Line',
