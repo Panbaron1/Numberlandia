@@ -53,7 +53,7 @@ class _ActivityCardState extends State<ActivityCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ── Big image area on a soft spectrum wash ───────────
+                // ── Full-bleed numberblock scene ─────────────────────
                 Expanded(
                   flex: 7,
                   child: Container(
@@ -61,9 +61,10 @@ class _ActivityCardState extends State<ActivityCard> {
                       gradient: softGradient(widget.color,
                           topAlpha: 0.26, botAlpha: 0.10),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(Gap.md),
-                      child: Image.asset(widget.assetImage, fit: BoxFit.contain),
+                    child: Image.asset(
+                      widget.assetImage,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
                     ),
                   ),
                 ),

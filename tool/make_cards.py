@@ -1,10 +1,15 @@
-"""Generate cohesive activity-card art from the app's own numberblock
-characters (same pastel palette, rounded squares, and friendly face)."""
+"""Generate cohesive activity-card art: a full-bleed numberblock SCENE
+(sky + grass + muted trees/houses/pond/clouds/critters) with the activity's
+own numberblock characters crisp in the foreground.
+
+The scenery is intentionally low-contrast (a translucent white veil is laid
+over it) so it reads as a calm backdrop and never competes with the
+foreground characters. Same pastel palette, rounded squares, friendly face."""
 import math
 from PIL import Image, ImageDraw
 
-S = 600                      # canvas
-UNIT = 96                    # one square
+S = 600                      # canvas (square, rendered BoxFit.cover in-app)
+UNIT = 96                    # one foreground square
 GAP = int(UNIT * 0.10)
 RAD = int(UNIT * 0.20)
 INK = (20, 33, 61, 255)      # navy pupils / number
@@ -19,8 +24,27 @@ NUMBLOCK = {
     9: (121, 134, 203), 10: (255, 214, 0),
 }
 
+# scenery palette (pastel, calm)
+SKY_TOP = (205, 233, 255)
+SKY_BOT = (233, 247, 255)
+GRASS_TOP = (183, 228, 168)
+GRASS_BOT = (151, 209, 140)
+FOLIAGE = (138, 205, 150)
+FOLIAGE2 = (110, 188, 138)
+TRUNK = (181, 140, 99)
+WALL = (255, 226, 184)
+ROOF = (255, 168, 142)
+DOOR = (181, 140, 99)
+POND = (150, 210, 235)
+POND_EDGE = (120, 190, 220)
+CLOUD = (255, 255, 255)
+SUN = (255, 234, 160)
+HORIZON = 392               # grass starts here
+
+
 def col(n):
     return NUMBLOCK[n] if n <= 10 else NUMBLOCK[(n - 1) % 10 + 1]
+
 
 def dims(n):
     if n <= 1:
@@ -30,6 +54,7 @@ def dims(n):
         if n % r == 0:
             return (r, n // r)
     return (n, 1)
+
 
 def face(d, x, y, cell):
     cx = x + cell / 2
@@ -43,11 +68,13 @@ def face(d, x, y, cell):
     sy = y + cell * 0.55
     d.arc([cx - sr, sy - sr, cx + sr, sy + sr], 20, 160, fill=BROWN, width=int(cell * 0.075))
 
+
 def square(d, x, y, color, unit=UNIT, drawface=False):
     c = color if len(color) == 4 else color + (255,)
     d.rounded_rectangle([x, y, x + unit, y + unit], radius=RAD, fill=c)
     if drawface:
         face(d, x, y, unit)
+
 
 def block(d, cx, ybottom, n, unit=UNIT, force_color=None):
     """Draw an n-character (square-packed, vertical-first) centred at cx with
@@ -65,64 +92,235 @@ def block(d, cx, ybottom, n, unit=UNIT, force_color=None):
             square(d, x, y, c, unit, drawface=(r == 0 and cc == 0))
     return gw, gh
 
+
 def plus(d, cx, cy, r=46, w=30, color=INK_SOFT):
     d.rounded_rectangle([cx - r, cy - w / 2, cx + r, cy + w / 2], radius=w / 2, fill=color)
     d.rounded_rectangle([cx - w / 2, cy - r, cx + w / 2, cy + r], radius=w / 2, fill=color)
 
+
 def minus(d, cx, cy, r=46, w=30, color=INK_SOFT):
     d.rounded_rectangle([cx - r, cy - w / 2, cx + r, cy + w / 2], radius=w / 2, fill=color)
+
 
 def arrow(d, x0, x1, cy, w=26, color=INK_SOFT):
     d.rounded_rectangle([x0, cy - w / 2, x1, cy + w / 2], radius=w / 2, fill=color)
     d.polygon([(x1, cy - w * 1.5), (x1 + w * 1.6, cy), (x1, cy + w * 1.5)], fill=color)
 
+
+def shadow(d, cx, ybottom, w):
+    """Soft ground ellipse so foreground characters sit on the grass."""
+    d.ellipse([cx - w / 2, ybottom - 14, cx + w / 2, ybottom + 14],
+              fill=(80, 110, 80, 70))
+
+
+# ── scenery primitives ──────────────────────────────────────────────────────
+
+def vgrad(draw, x0, y0, x1, y1, top, bot):
+    """Vertical gradient fill in [y0,y1) across [x0,x1)."""
+    h = max(1, y1 - y0)
+    for i in range(h):
+        t = i / h
+        c = tuple(int(top[k] + (bot[k] - top[k]) * t) for k in range(3))
+        draw.line([(x0, y0 + i), (x1, y0 + i)], fill=c + (255,))
+
+
+def cloud(d, cx, cy, scale=1.0):
+    r = 34 * scale
+    for dx, dy, rr in [(-r, 4, r), (0, -r * 0.5, r * 1.25), (r, 4, r), (0, 8, r * 1.3)]:
+        d.ellipse([cx + dx - rr, cy + dy - rr, cx + dx + rr, cy + dy + rr], fill=CLOUD + (255,))
+
+
+def sun(d, cx, cy, r=46):
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=SUN + (255,))
+
+
+def tree(d, cx, base, scale=1.0):
+    """Numberblock tree: brown trunk + stack of rounded green squares."""
+    u = 46 * scale
+    tw = u * 0.5
+    d.rounded_rectangle([cx - tw / 2, base - u * 1.1, cx + tw / 2, base],
+                        radius=tw * 0.3, fill=TRUNK + (255,))
+    # canopy: 3 squares (2 over 1) in numberblock style
+    cy = base - u * 1.1
+    d.rounded_rectangle([cx - u / 2, cy - u, cx + u / 2, cy],
+                        radius=u * 0.22, fill=FOLIAGE2 + (255,))
+    for dx in (-u * 0.55, u * 0.55):
+        d.rounded_rectangle([cx + dx - u / 2, cy - u * 1.9, cx + dx + u / 2, cy - u * 0.9],
+                            radius=u * 0.22, fill=FOLIAGE + (255,))
+    d.rounded_rectangle([cx - u / 2, cy - u * 2.7, cx + u / 2, cy - u * 1.7],
+                        radius=u * 0.22, fill=FOLIAGE + (255,))
+
+
+def bush(d, cx, base, scale=1.0):
+    u = 40 * scale
+    for dx in (-u * 0.45, u * 0.45):
+        d.rounded_rectangle([cx + dx - u / 2, base - u, cx + dx + u / 2, base],
+                            radius=u * 0.25, fill=FOLIAGE + (255,))
+    d.rounded_rectangle([cx - u / 2, base - u * 1.5, cx + u / 2, base - u * 0.5],
+                        radius=u * 0.25, fill=FOLIAGE2 + (255,))
+
+
+def house(d, cx, base, scale=1.0):
+    """Numberblock house: square wall + triangle roof + door + window."""
+    w = 96 * scale
+    wall_top = base - w
+    d.rounded_rectangle([cx - w / 2, wall_top, cx + w / 2, base],
+                        radius=w * 0.12, fill=WALL + (255,))
+    # roof
+    d.polygon([(cx - w * 0.62, wall_top + 6), (cx, wall_top - w * 0.5),
+               (cx + w * 0.62, wall_top + 6)], fill=ROOF + (255,))
+    # door
+    dw = w * 0.26
+    d.rounded_rectangle([cx - dw / 2, base - w * 0.5, cx + dw / 2, base],
+                        radius=dw * 0.2, fill=DOOR + (255,))
+    # window
+    ws = w * 0.22
+    d.rounded_rectangle([cx + w * 0.16, wall_top + w * 0.18,
+                         cx + w * 0.16 + ws, wall_top + w * 0.18 + ws],
+                        radius=ws * 0.2, fill=POND + (255,))
+
+
+def pond(d, cx, cy, w=170, h=64):
+    d.ellipse([cx - w / 2 - 6, cy - h / 2 - 6, cx + w / 2 + 6, cy + h / 2 + 6],
+              fill=POND_EDGE + (255,))
+    d.ellipse([cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2], fill=POND + (255,))
+    # ripple
+    d.arc([cx - w * 0.18, cy - h * 0.1, cx + w * 0.18, cy + h * 0.25],
+          200, 340, fill=(255, 255, 255, 200), width=3)
+
+
+def duck(d, cx, base, scale=1.0):
+    """Tiny numberblock duck (yellow square + beak + eye)."""
+    u = 30 * scale
+    d.rounded_rectangle([cx - u / 2, base - u, cx + u / 2, base],
+                        radius=u * 0.25, fill=(255, 213, 79, 255))
+    # beak
+    d.polygon([(cx + u * 0.5, base - u * 0.55), (cx + u * 0.95, base - u * 0.4),
+               (cx + u * 0.5, base - u * 0.25)], fill=(255, 152, 0, 255))
+    # eye
+    d.ellipse([cx + u * 0.05, base - u * 0.78, cx + u * 0.25, base - u * 0.58], fill=INK)
+
+
+def cat(d, cx, base, scale=1.0):
+    """Tiny numberblock cat (square body + ears + face)."""
+    u = 38 * scale
+    top = base - u
+    # ears
+    d.polygon([(cx - u * 0.42, top), (cx - u * 0.18, top - u * 0.35), (cx - u * 0.02, top)],
+              fill=(179, 136, 255, 255))
+    d.polygon([(cx + u * 0.02, top), (cx + u * 0.18, top - u * 0.35), (cx + u * 0.42, top)],
+              fill=(179, 136, 255, 255))
+    d.rounded_rectangle([cx - u / 2, top, cx + u / 2, base], radius=u * 0.25,
+                        fill=(179, 136, 255, 255))
+    for dx in (-u * 0.18, u * 0.18):
+        d.ellipse([cx + dx - u * 0.07, top + u * 0.3, cx + dx + u * 0.07, top + u * 0.44], fill=INK)
+
+
+def scene(img, d, *, sunside="left", trees=(), houses=(), pond_xy=None,
+          clouds=(), bushes=(), ducks=(), cats=()):
+    """Compose a calm world: sky gradient, grass, then scattered scenery.
+    All scenery is drawn here; a white veil mutes it before the foreground."""
+    vgrad(d, 0, 0, S, HORIZON, SKY_TOP, SKY_BOT)
+    vgrad(d, 0, HORIZON, S, S, GRASS_TOP, GRASS_BOT)
+    # gentle rolling hill behind the grass line
+    d.ellipse([-120, HORIZON - 70, 320, HORIZON + 160], fill=(168, 222, 156, 255))
+    d.ellipse([300, HORIZON - 50, 760, HORIZON + 180], fill=(176, 226, 162, 255))
+    if sunside:
+        sun(d, 70 if sunside == "left" else S - 70, 78)
+    for cx, cy, sc in clouds:
+        cloud(d, cx, cy, sc)
+    for cx, sc in houses:
+        house(d, cx, HORIZON + 28, sc)
+    for cx, sc in trees:
+        tree(d, cx, HORIZON + 36, sc)
+    for cx, sc in bushes:
+        bush(d, cx, HORIZON + 30, sc)
+    if pond_xy:
+        pond(d, *pond_xy)
+    for cx, b, sc in ducks:
+        duck(d, cx, b, sc)
+    for cx, b, sc in cats:
+        cat(d, cx, b, sc)
+    # white veil → push scenery back so foreground pops
+    veil = Image.new("RGBA", (S, S), (255, 255, 255, 96))
+    img.alpha_composite(veil)
+
+
 def canvas():
     img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
     return img, ImageDraw.Draw(img)
+
 
 def save(img, name):
     img.save(f"{OUT}\\{name}.png")
     print("wrote", name)
 
-# ── numberblocks: characters 1 2 3 in a row ─────────────────────────────────
+
+# ── numberblocks: characters 1 2 3 on a grassy hill, trees + house behind ────
 img, d = canvas()
-yb = 420
-xs = [150, 300, 450]
-for cx, n in zip(xs, (1, 2, 3)):
-    block(d, cx, yb, n, unit=78)
+scene(img, d, sunside="left",
+      trees=[(70, 0.85), (540, 1.0)], houses=[(470, 0.7)],
+      clouds=[(430, 70, 0.9), (180, 120, 0.6)], bushes=[(150, 0.7)])
+d = ImageDraw.Draw(img)
+yb = 470
+for cx, n in zip((175, 320, 470), (1, 2, 3)):
+    shadow(d, cx, yb, 72)
+    block(d, cx, yb, n, unit=74)
 save(img, "numberblocks")
 
-# ── add up: 2 + 3 ───────────────────────────────────────────────────────────
+# ── add up: 2 + 3 in a sunny garden ──────────────────────────────────────────
 img, d = canvas()
-block(d, 175, 430, 2, unit=86)
-plus(d, 300, 300)
-block(d, 430, 430, 3, unit=86)
+scene(img, d, sunside="right",
+      trees=[(80, 0.9)], bushes=[(520, 0.8), (560, 0.6)],
+      clouds=[(150, 80, 0.8)], ducks=[(515, 470, 1.0)])
+d = ImageDraw.Draw(img)
+shadow(d, 185, 470, 110)
+block(d, 185, 470, 2, unit=84)
+plus(d, 305, 320)
+shadow(d, 430, 470, 150)
+block(d, 430, 470, 3, unit=84)
 save(img, "addup")
 
-# ── number line: a character standing on a line ─────────────────────────────
+# ── number line: a character on a path, trees lining it ──────────────────────
 img, d = canvas()
-d.rounded_rectangle([60, 470, 540, 500], radius=15, fill=(45, 201, 160, 255))  # teal track
-for tx in range(100, 541, 90):
-    d.rounded_rectangle([tx - 4, 440, tx + 4, 470], radius=4, fill=(45, 201, 160, 180))
-block(d, 300, 470, 3, unit=92)
+scene(img, d, sunside="left",
+      trees=[(70, 0.8), (180, 0.7), (430, 0.7), (540, 0.85)],
+      clouds=[(300, 80, 0.9)])
+d = ImageDraw.Draw(img)
+d.rounded_rectangle([50, 486, 550, 516], radius=15, fill=(45, 201, 160, 255))  # teal track
+for tx in range(95, 541, 90):
+    d.rounded_rectangle([tx - 4, 458, tx + 4, 486], radius=4, fill=(45, 201, 160, 220))
+shadow(d, 300, 486, 100)
+block(d, 300, 486, 3, unit=90)
 save(img, "numberline")
 
-# ── doubling: 2 -> 4 ────────────────────────────────────────────────────────
+# ── doubling: 2 -> 4, pond + duck ────────────────────────────────────────────
 img, d = canvas()
-block(d, 165, 430, 2, unit=82)
-arrow(d, 270, 330, 300)
-block(d, 445, 430, 4, unit=82)
+scene(img, d, sunside="right",
+      trees=[(60, 0.85)], clouds=[(220, 80, 0.8), (470, 110, 0.6)],
+      pond_xy=(470, 470, 180, 60), ducks=[(470, 470, 1.1)])
+d = ImageDraw.Draw(img)
+shadow(d, 175, 470, 100)
+block(d, 175, 470, 2, unit=80)
+arrow(d, 270, 330, 320)
+shadow(d, 445, 470, 150)
+block(d, 445, 470, 4, unit=80)
 save(img, "doubling")
 
-# ── times tables: a 3 x 3 array ─────────────────────────────────────────────
+# ── times tables: a 3x3 array in a tidy orchard ──────────────────────────────
 img, d = canvas()
+scene(img, d, sunside="left",
+      trees=[(65, 0.8), (535, 0.8)], houses=[(300, 0.55)],
+      clouds=[(150, 80, 0.7), (450, 90, 0.7)])
+d = ImageDraw.Draw(img)
 rows = cols = 3
-unit = 120
+unit = 112
 gw = cols * unit + (cols - 1) * GAP
 gh = rows * unit + (rows - 1) * GAP
 ox = (S - gw) / 2
-oy = (S - gh) / 2
-tcol = (255, 140, 66)  # times-tables orange
+oy = (S - gh) / 2 + 24
+tcol = (255, 140, 66)
+shadow(d, S / 2, oy + gh, gw)
 for r in range(rows):
     for c in range(cols):
         x = ox + c * (unit + GAP)
@@ -130,37 +328,53 @@ for r in range(rows):
         square(d, x, y, tcol, unit, drawface=(r == 0 and c == 0))
 save(img, "timestables")
 
-# ── build a million: a tall tower ───────────────────────────────────────────
+# ── build a million: a tall tower beside a house ─────────────────────────────
 img, d = canvas()
+scene(img, d, sunside="right",
+      trees=[(70, 0.8)], houses=[(480, 0.75)],
+      clouds=[(200, 70, 0.8), (380, 120, 0.5)], bushes=[(150, 0.6)])
+d = ImageDraw.Draw(img)
 million = (79, 142, 247)
-unit = 82
+unit = 80
 count = 5
 gh = count * unit + (count - 1) * GAP
-oy = (S - gh) / 2
-cx = S / 2
+oy = 470 - gh
+cx = 290
+shadow(d, cx, 470, unit + 20)
 for i in range(count):
-    y = oy + i * (unit + GAP)
-    square(d, cx - unit / 2, y, million, unit, drawface=(i == 0))
+    y = oy + (count - 1 - i) * (unit + GAP)
+    square(d, cx - unit / 2, y, million, unit, drawface=(i == count - 1))
 save(img, "million")
 
-# ── take away: 5 − 2 ────────────────────────────────────────────────────────
+# ── take away: 5 - 2, cat watching ───────────────────────────────────────────
 img, d = canvas()
-block(d, 175, 440, 5, unit=78)
-minus(d, 300, 300)
-block(d, 430, 440, 2, unit=86)
+scene(img, d, sunside="left",
+      trees=[(545, 0.9)], bushes=[(70, 0.7)],
+      clouds=[(250, 80, 0.8)], cats=[(520, 470, 1.1)])
+d = ImageDraw.Draw(img)
+shadow(d, 175, 470, 90)
+block(d, 175, 470, 5, unit=76)
+minus(d, 305, 320)
+shadow(d, 430, 470, 110)
+block(d, 430, 470, 2, unit=84)
 save(img, "takeaway")
 
-# ── clock: digital time made of numberblocks (1 2 : 3 0) ────────────────────
+# ── clock: 1 2 : 3 0 under the sun, village behind ───────────────────────────
 img, d = canvas()
-u = 70
-yb = 380
-block(d, 130, yb, 1, unit=u)
-block(d, 215, yb, 2, unit=u)
-# colon
+scene(img, d, sunside="right",
+      trees=[(60, 0.7), (545, 0.7)], houses=[(160, 0.55), (440, 0.5)],
+      clouds=[(300, 70, 0.9)])
+d = ImageDraw.Draw(img)
+u = 68
+yb = 430
+for cx, n in ((125, 1), (210, 2)):
+    shadow(d, cx, yb, u + 8)
+    block(d, cx, yb, n, unit=u)
 for dy in (-30, 30):
-    d.ellipse([300 - 13, yb - 95 + dy - 13, 300 + 13, yb - 95 + dy + 13], fill=INK_SOFT)
-block(d, 375, yb, 3, unit=u)
-block(d, 500, yb, 4, unit=u)
+    d.ellipse([300 - 12, yb - 95 + dy - 12, 300 + 12, yb - 95 + dy + 12], fill=INK_SOFT)
+for cx, n in ((375, 3), (495, 4)):
+    shadow(d, cx, yb, u + 8)
+    block(d, cx, yb, n, unit=u)
 save(img, "clock")
 
 print("done")
