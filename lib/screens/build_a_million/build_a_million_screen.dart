@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/haptics_service.dart';
 import '../../theme.dart';
+import '../../widgets/scene_background.dart';
 import '../../widgets/app_scaffold.dart';
 import 'million_notifier.dart';
 
@@ -44,14 +45,16 @@ class _BuildAMillionScreenState extends State<BuildAMillionScreen> {
         color: NColors.million,
         assetImage: 'assets/cards/million.png',
       ),
-      body: AnimatedBuilder(
+      body: SceneBackground(
+        color: NColors.million,
+        child: AnimatedBuilder(
         animation: _notifier,
         builder: (context, _) => _Body(
           notifier: _notifier,
           onTap: _tap,
           onReset: _reset,
         ),
-      ),
+      )),
     );
   }
 }

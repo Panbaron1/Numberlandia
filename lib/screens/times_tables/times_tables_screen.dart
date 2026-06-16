@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/haptics_service.dart';
 import '../../theme.dart';
+import '../../widgets/scene_background.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/num_block.dart';
 import 'times_tables_notifier.dart';
@@ -35,7 +36,9 @@ class _TimesTablesScreenState extends State<TimesTablesScreen> {
         color: NColors.timesTables,
         assetImage: 'assets/cards/timestables.png',
       ),
-      body: AnimatedBuilder(
+      body: SceneBackground(
+        color: NColors.timesTables,
+        child: AnimatedBuilder(
         animation: _n,
         builder: (context, _) => SafeArea(
           child: Column(
@@ -80,7 +83,7 @@ class _TimesTablesScreenState extends State<TimesTablesScreen> {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 }

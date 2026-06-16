@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/haptics_service.dart';
 import '../../theme.dart';
+import '../../widgets/scene_background.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/num_block.dart';
 import 'doubling_notifier.dart';
@@ -45,7 +46,9 @@ class _DoublingScreenState extends State<DoublingScreen> {
         color: NColors.doubling,
         assetImage: 'assets/cards/doubling.png',
       ),
-      body: AnimatedBuilder(
+      body: SceneBackground(
+        color: NColors.doubling,
+        child: AnimatedBuilder(
         animation: _n,
         builder: (context, _) => SafeArea(
           child: Column(
@@ -69,7 +72,7 @@ class _DoublingScreenState extends State<DoublingScreen> {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 }

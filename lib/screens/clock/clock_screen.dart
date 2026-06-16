@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../theme.dart';
+import '../../widgets/scene_background.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/num_block.dart';
 
@@ -47,7 +48,9 @@ class _ClockScreenState extends State<ClockScreen> {
         color: NColors.clock,
         assetImage: 'assets/cards/clock.png',
       ),
-      body: SafeArea(
+      body: SceneBackground(
+        color: NColors.clock,
+        child: SafeArea(
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(Gap.lg),
@@ -93,7 +96,7 @@ class _ClockScreenState extends State<ClockScreen> {
             ),
           ),
         ),
-      ),
+      )),
     );
   }
 

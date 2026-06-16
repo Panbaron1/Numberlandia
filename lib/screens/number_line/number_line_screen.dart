@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/haptics_service.dart';
 import '../../theme.dart';
+import '../../widgets/scene_background.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/num_block.dart';
 import 'number_line_notifier.dart';
@@ -76,7 +77,9 @@ class _NumberLineScreenState extends State<NumberLineScreen> {
           const SizedBox(width: Gap.sm),
         ],
       ),
-      body: AnimatedBuilder(
+      body: SceneBackground(
+        color: NColors.numberLine,
+        child: AnimatedBuilder(
         animation: _notifier,
         builder: (context, _) => SafeArea(
           child: Column(
@@ -115,7 +118,7 @@ class _NumberLineScreenState extends State<NumberLineScreen> {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 }

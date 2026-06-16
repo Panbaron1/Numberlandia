@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/haptics_service.dart';
 import '../../theme.dart';
+import '../../widgets/scene_background.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/num_block.dart';
 import 'number_machine_notifier.dart';
@@ -49,7 +50,9 @@ class _NumberMachineScreenState extends State<NumberMachineScreen> {
         color: NColors.machine,
         assetImage: 'assets/cards/numberblocks.png',
       ),
-      body: AnimatedBuilder(
+      body: SceneBackground(
+        color: NColors.machine,
+        child: AnimatedBuilder(
         animation: _n,
         builder: (context, _) => SafeArea(
           child: Column(
@@ -121,7 +124,7 @@ class _NumberMachineScreenState extends State<NumberMachineScreen> {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 }

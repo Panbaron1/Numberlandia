@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/haptics_service.dart';
 import '../../theme.dart';
+import '../../widgets/scene_background.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/num_block.dart';
 import 'take_away_notifier.dart';
@@ -43,7 +44,9 @@ class _TakeAwayScreenState extends State<TakeAwayScreen> {
         color: NColors.takeAway,
         assetImage: 'assets/cards/takeaway.png',
       ),
-      body: AnimatedBuilder(
+      body: SceneBackground(
+        color: NColors.takeAway,
+        child: AnimatedBuilder(
         animation: _n,
         builder: (context, _) => SafeArea(
           child: Column(
@@ -85,7 +88,7 @@ class _TakeAwayScreenState extends State<TakeAwayScreen> {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 }
