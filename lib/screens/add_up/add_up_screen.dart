@@ -50,13 +50,18 @@ class _AddUpScreenState extends State<AddUpScreen> {
         child: AnimatedBuilder(
         animation: _n,
         builder: (context, _) => SafeArea(
-          child: Column(
+          child: LayoutBuilder(
+            builder: (context, cons) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: cons.maxHeight),
+                child: Column(
             children: [
               const SizedBox(height: Gap.sm),
               _EquationRow(notifier: _n),
               const SizedBox(height: Gap.sm),
               // ── Three blocks: A + B = C ──────────────────────────────
-              Expanded(
+              SizedBox(
+                height: (cons.maxHeight * 0.6).clamp(200.0, 620.0),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: Gap.md),
                   child: Row(
@@ -88,6 +93,9 @@ class _AddUpScreenState extends State<AddUpScreen> {
               ),
               const SizedBox(height: Gap.md),
             ],
+                ),
+              ),
+            ),
           ),
         ),
       )),

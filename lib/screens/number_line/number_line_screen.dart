@@ -82,11 +82,16 @@ class _NumberLineScreenState extends State<NumberLineScreen> {
         child: AnimatedBuilder(
         animation: _notifier,
         builder: (context, _) => SafeArea(
-          child: Column(
+          child: LayoutBuilder(
+            builder: (context, cons) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: cons.maxHeight),
+                child: Column(
             children: [
               _FactsPanel(notifier: _notifier),
               // ── Numberblock view (scales to 100×100 = 10,000) ──────
-              Expanded(
+              SizedBox(
+                height: (cons.maxHeight * 0.42).clamp(140.0, 460.0),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: Gap.lg, vertical: Gap.sm),
@@ -116,6 +121,9 @@ class _NumberLineScreenState extends State<NumberLineScreen> {
               _StepControls(onStep: _step),
               const SizedBox(height: Gap.lg),
             ],
+                ),
+              ),
+            ),
           ),
         ),
       )),
@@ -138,21 +146,24 @@ class _FactsPanel extends StatelessWidget {
       child: Column(
         children: [
           // ── Big current number ──────────────────────────────────────
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 110),
-            transitionBuilder: (child, anim) =>
-                ScaleTransition(scale: anim, child: child),
-            child: Text(
-              n.toString(),
-              key: ValueKey(n),
-              style: TextStyle(
-                fontSize: 60,
-                fontWeight: FontWeight.w800,
-                color: n == 0
-                    ? NColors.zero
-                    : (n < 0 ? NColors.numberLine : NColors.ink),
-                letterSpacing: -2,
-                height: 1,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 110),
+              transitionBuilder: (child, anim) =>
+                  ScaleTransition(scale: anim, child: child),
+              child: Text(
+                n.toString(),
+                key: ValueKey(n),
+                style: TextStyle(
+                  fontSize: 60,
+                  fontWeight: FontWeight.w800,
+                  color: n == 0
+                      ? NColors.zero
+                      : (n < 0 ? NColors.numberLine : NColors.ink),
+                  letterSpacing: -2,
+                  height: 1,
+                ),
               ),
             ),
           ),

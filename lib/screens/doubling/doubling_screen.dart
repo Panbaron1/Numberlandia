@@ -51,14 +51,19 @@ class _DoublingScreenState extends State<DoublingScreen> {
         child: AnimatedBuilder(
         animation: _n,
         builder: (context, _) => SafeArea(
-          child: Column(
+          child: LayoutBuilder(
+            builder: (context, cons) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: cons.maxHeight),
+                child: Column(
             children: [
               const SizedBox(height: Gap.lg),
               // ── Equation ─────────────────────────────────────────────
               _EquationLabel(notifier: _n),
               const SizedBox(height: Gap.lg),
               // ── Block towers ─────────────────────────────────────────
-              Expanded(
+              SizedBox(
+                height: (cons.maxHeight * 0.45).clamp(160.0, 520.0),
                 child: _TowerView(notifier: _n),
               ),
               // ── Controls ─────────────────────────────────────────────
@@ -70,6 +75,9 @@ class _DoublingScreenState extends State<DoublingScreen> {
               ),
               const SizedBox(height: Gap.lg),
             ],
+                ),
+              ),
+            ),
           ),
         ),
       )),
@@ -88,7 +96,9 @@ class _EquationLabel extends StatelessWidget {
     final c1 = NColors.numBlockColor(notifier.value);
     final c2 = NColors.numBlockColor(notifier.doubled);
 
-    return Row(
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
@@ -123,6 +133,7 @@ class _EquationLabel extends StatelessWidget {
           ),
         ),
       ],
+    ),
     );
   }
 }
@@ -229,8 +240,11 @@ class _Controls extends StatelessWidget {
                   onTap: notifier.value < DoublingNotifier.max ? onDouble : null,
                   height: 72,
                   radius: Radii.lg,
-                  child: const Text('Double it!  ×2',
-                      style: TextStyle(fontSize: 22)),
+                  child: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Double it!  ×2',
+                        style: TextStyle(fontSize: 22)),
+                  ),
                 ),
               ),
               const SizedBox(width: Gap.md),

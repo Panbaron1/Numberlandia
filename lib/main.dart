@@ -27,6 +27,18 @@ class NumberlandiaApp extends StatelessWidget {
       theme: buildNumberlandiaTheme(),
       home: const HomeScreen(),
       debugShowCheckedModeBanner: false,
+      // Cap the OS font scale: huge accessibility fonts are the single worst
+      // real-device overflow trigger. Never shrink below 1.0; cap at 1.3.
+      builder: (context, child) {
+        final mq = MediaQuery.of(context);
+        return MediaQuery(
+          data: mq.copyWith(
+            textScaler: mq.textScaler
+                .clamp(minScaleFactor: 1.0, maxScaleFactor: 1.3),
+          ),
+          child: child!,
+        );
+      },
     );
   }
 }

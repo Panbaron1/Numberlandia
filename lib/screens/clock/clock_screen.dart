@@ -54,7 +54,9 @@ class _ClockScreenState extends State<ClockScreen> {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(Gap.lg),
-            child: Column(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Digital readout above the blocks — each digit tinted with
@@ -93,6 +95,7 @@ class _ClockScreenState extends State<ClockScreen> {
                   ],
                 ),
               ],
+            ),
             ),
           ),
         ),

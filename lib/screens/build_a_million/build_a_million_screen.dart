@@ -73,7 +73,12 @@ class _Body extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Column(
+      child: LayoutBuilder(
+        builder: (context, cons) => SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: cons.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
         children: [
           const SizedBox(height: Gap.lg),
           // Big number display
@@ -120,18 +125,25 @@ class _Body extends StatelessWidget {
               onTap: onReset,
               height: 58,
               width: double.infinity,
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.refresh_rounded, size: 22),
-                  SizedBox(width: Gap.sm),
-                  Text('Reset to zero', style: TextStyle(fontSize: 17)),
-                ],
+              child: const FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.refresh_rounded, size: 22),
+                    SizedBox(width: Gap.sm),
+                    Text('Reset to zero', style: TextStyle(fontSize: 17)),
+                  ],
+                ),
               ),
             ),
           ),
           const SizedBox(height: Gap.xl),
         ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -145,14 +157,17 @@ class _NumberDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(
-          _format(value),
-          style: const TextStyle(
-            fontSize: 64,
-            fontWeight: FontWeight.w800,
-            color: NColors.ink,
-            letterSpacing: -2,
-            height: 1,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            _format(value),
+            style: const TextStyle(
+              fontSize: 64,
+              fontWeight: FontWeight.w800,
+              color: NColors.ink,
+              letterSpacing: -2,
+              height: 1,
+            ),
           ),
         ),
         if (value == 1000000)
@@ -265,20 +280,26 @@ class _PlaceBlock extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              count.toString(),
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: count > 0 ? color : NColors.inkSoft.withAlpha(80),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                count.toString(),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: count > 0 ? color : NColors.inkSoft.withAlpha(80),
+                ),
               ),
             ),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: count > 0 ? color : NColors.inkSoft.withAlpha(80),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: count > 0 ? color : NColors.inkSoft.withAlpha(80),
+                ),
               ),
             ),
           ],
