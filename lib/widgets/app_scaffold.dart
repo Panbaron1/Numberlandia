@@ -127,9 +127,12 @@ class _SoftButtonState extends State<SoftButton> {
   @override
   Widget build(BuildContext context) {
     final enabled = widget.onTap != null;
+    // Opaque, lightly-tinted surface so buttons stand out from the busy
+    // scenery behind them (alphaBlend over the solid surface = no see-through).
     final bg = enabled
-        ? widget.color.withAlpha(_down ? 90 : 48)
-        : NColors.inkMuted.withAlpha(26);
+        ? Color.alphaBlend(
+            widget.color.withAlpha(_down ? 96 : 64), NColors.surface)
+        : Color.alphaBlend(NColors.inkMuted.withAlpha(20), NColors.surface);
     // Dark ink glyphs for legibility on the soft tint (Spectroom-style).
     final fg = enabled ? NColors.ink : NColors.inkMuted;
 
@@ -145,6 +148,21 @@ class _SoftButtonState extends State<SoftButton> {
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(widget.radius),
+          border: Border.all(
+            color: enabled
+                ? widget.color.withAlpha(150)
+                : NColors.inkMuted.withAlpha(40),
+            width: 2,
+          ),
+          boxShadow: enabled
+              ? [
+                  BoxShadow(
+                    color: widget.color.withAlpha(_down ? 20 : 46),
+                    blurRadius: _down ? 3 : 7,
+                    offset: Offset(0, _down ? 1 : 3),
+                  ),
+                ]
+              : null,
         ),
         child: Center(
           child: DefaultTextStyle.merge(

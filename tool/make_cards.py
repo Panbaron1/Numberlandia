@@ -216,8 +216,47 @@ def cat(d, cx, base, scale=1.0):
         d.ellipse([cx + dx - u * 0.07, top + u * 0.3, cx + dx + u * 0.07, top + u * 0.44], fill=INK)
 
 
+PINE = (127, 196, 138)
+
+
+def pine(d, cx, base, scale=1.0):
+    """Blocky pine — stacked triangles on a short trunk."""
+    u = 46 * scale
+    tw = u * 0.34
+    d.rounded_rectangle([cx - tw / 2, base - u * 0.5, cx + tw / 2, base],
+                        radius=tw * 0.3, fill=TRUNK + (255,))
+    for i in range(3):
+        ty = base - u * 0.5 - i * u * 0.7
+        spread = u * (1.1 - i * 0.28)
+        d.polygon([(cx - spread, ty), (cx, ty - u * 1.0), (cx + spread, ty)],
+                  fill=PINE + (255,))
+
+
+def flower(d, cx, base, scale=1.0, petal=ROOF):
+    """Tiny flower — stem + four petals + sun centre."""
+    u = 40 * scale
+    d.rectangle([cx - u * 0.05, base - u, cx + u * 0.05, base], fill=FOLIAGE2 + (255,))
+    cy = base - u
+    pr = u * 0.22
+    for ox, oy in [(0, -u * 0.34), (0, u * 0.34), (-u * 0.34, 0), (u * 0.34, 0)]:
+        d.ellipse([cx + ox - pr, cy + oy - pr, cx + ox + pr, cy + oy + pr],
+                  fill=petal + (255,))
+    d.ellipse([cx - u * 0.18, cy - u * 0.18, cx + u * 0.18, cy + u * 0.18],
+              fill=(255, 234, 160, 255))
+
+
+def bird(d, cx, cy, scale=1.0, col=(191, 211, 230)):
+    """Tiny numberblock bird in the sky."""
+    u = 34 * scale
+    d.rounded_rectangle([cx - u / 2, cy - u / 2, cx + u / 2, cy + u / 2],
+                        radius=u * 0.32, fill=col + (255,))
+    d.polygon([(cx + u * 0.5, cy - u * 0.05), (cx + u * 0.85, cy + u * 0.02),
+               (cx + u * 0.5, cy + u * 0.12)], fill=(255, 152, 0, 255))
+    d.ellipse([cx + u * 0.05, cy - u * 0.2, cx + u * 0.2, cy - u * 0.05], fill=INK)
+
+
 def scene(img, d, *, sunside="left", trees=(), houses=(), pond_xy=None,
-          clouds=(), bushes=(), ducks=(), cats=()):
+          clouds=(), bushes=(), ducks=(), cats=(), pines=(), flowers=(), birds=()):
     """Compose a calm world: sky gradient, grass, then scattered scenery.
     All scenery is drawn here; a white veil mutes it before the foreground."""
     vgrad(d, 0, 0, S, HORIZON, SKY_TOP, SKY_BOT)
@@ -233,14 +272,20 @@ def scene(img, d, *, sunside="left", trees=(), houses=(), pond_xy=None,
         house(d, cx, HORIZON + 28, sc)
     for cx, sc in trees:
         tree(d, cx, HORIZON + 36, sc)
+    for cx, sc in pines:
+        pine(d, cx, HORIZON + 34, sc)
     for cx, sc in bushes:
         bush(d, cx, HORIZON + 30, sc)
+    for cx, sc, petal in flowers:
+        flower(d, cx, HORIZON + 40, sc, petal)
     if pond_xy:
         pond(d, *pond_xy)
     for cx, b, sc in ducks:
         duck(d, cx, b, sc)
     for cx, b, sc in cats:
         cat(d, cx, b, sc)
+    for cx, cy, sc in birds:
+        bird(d, cx, cy, sc)
     # white veil → push scenery back so foreground pops
     veil = Image.new("RGBA", (S, S), (255, 255, 255, 96))
     img.alpha_composite(veil)
@@ -260,7 +305,9 @@ def save(img, name):
 img, d = canvas()
 scene(img, d, sunside="left",
       trees=[(70, 0.85), (540, 1.0)], houses=[(470, 0.7)],
-      clouds=[(430, 70, 0.9), (180, 120, 0.6)], bushes=[(150, 0.7)])
+      clouds=[(430, 70, 0.9), (180, 120, 0.6)], bushes=[(150, 0.7)],
+      flowers=[(35, 0.55, ROOF), (575, 0.5, (244, 143, 177))],
+      birds=[(250, 120, 0.6)])
 d = ImageDraw.Draw(img)
 yb = 470
 for cx, n in zip((175, 320, 470), (1, 2, 3)):
@@ -272,7 +319,9 @@ save(img, "numberblocks")
 img, d = canvas()
 scene(img, d, sunside="right",
       trees=[(80, 0.9)], bushes=[(520, 0.8), (560, 0.6)],
-      clouds=[(150, 80, 0.8)], ducks=[(515, 470, 1.0)])
+      clouds=[(150, 80, 0.8)], ducks=[(515, 470, 1.0)],
+      flowers=[(40, 0.5, POND), (300, 0.45, ROOF)],
+      birds=[(430, 110, 0.55)])
 d = ImageDraw.Draw(img)
 shadow(d, 185, 470, 110)
 block(d, 185, 470, 2, unit=84)
@@ -284,8 +333,10 @@ save(img, "addup")
 # ── number line: a character on a path, trees lining it ──────────────────────
 img, d = canvas()
 scene(img, d, sunside="left",
-      trees=[(70, 0.8), (180, 0.7), (430, 0.7), (540, 0.85)],
-      clouds=[(300, 80, 0.9)])
+      trees=[(70, 0.8), (540, 0.85)], pines=[(180, 0.7), (430, 0.7)],
+      clouds=[(300, 80, 0.9)],
+      flowers=[(35, 0.5, (244, 143, 177)), (565, 0.5, ROOF)],
+      birds=[(250, 110, 0.5), (360, 140, 0.45)])
 d = ImageDraw.Draw(img)
 d.rounded_rectangle([50, 486, 550, 516], radius=15, fill=(45, 201, 160, 255))  # teal track
 for tx in range(95, 541, 90):
@@ -298,7 +349,9 @@ save(img, "numberline")
 img, d = canvas()
 scene(img, d, sunside="right",
       trees=[(60, 0.85)], clouds=[(220, 80, 0.8), (470, 110, 0.6)],
-      pond_xy=(470, 470, 180, 60), ducks=[(470, 470, 1.1)])
+      pond_xy=(470, 470, 180, 60), ducks=[(470, 470, 1.1)],
+      flowers=[(35, 0.5, ROOF), (120, 0.45, POND)],
+      birds=[(330, 120, 0.55)])
 d = ImageDraw.Draw(img)
 shadow(d, 175, 470, 100)
 block(d, 175, 470, 2, unit=80)
@@ -310,8 +363,10 @@ save(img, "doubling")
 # ── times tables: a 3x3 array in a tidy orchard ──────────────────────────────
 img, d = canvas()
 scene(img, d, sunside="left",
-      trees=[(65, 0.8), (535, 0.8)], houses=[(300, 0.55)],
-      clouds=[(150, 80, 0.7), (450, 90, 0.7)])
+      pines=[(55, 0.85), (130, 0.65), (470, 0.65), (545, 0.85)],
+      houses=[(300, 0.5)], clouds=[(150, 80, 0.7), (450, 90, 0.7)],
+      flowers=[(35, 0.5, ROOF), (565, 0.5, (244, 143, 177))],
+      birds=[(250, 110, 0.5)])
 d = ImageDraw.Draw(img)
 rows = cols = 3
 unit = 112
@@ -332,7 +387,9 @@ save(img, "timestables")
 img, d = canvas()
 scene(img, d, sunside="right",
       trees=[(70, 0.8)], houses=[(480, 0.75)],
-      clouds=[(200, 70, 0.8), (380, 120, 0.5)], bushes=[(150, 0.6)])
+      clouds=[(200, 70, 0.8), (380, 120, 0.5)], bushes=[(150, 0.6)],
+      flowers=[(40, 0.5, POND), (560, 0.5, ROOF)],
+      birds=[(330, 110, 0.55)])
 d = ImageDraw.Draw(img)
 million = (79, 142, 247)
 unit = 80
@@ -349,8 +406,10 @@ save(img, "million")
 # ── take away: 5 - 2, cat watching ───────────────────────────────────────────
 img, d = canvas()
 scene(img, d, sunside="left",
-      trees=[(545, 0.9)], bushes=[(70, 0.7)],
-      clouds=[(250, 80, 0.8)], cats=[(520, 470, 1.1)])
+      pines=[(545, 0.9)], bushes=[(70, 0.7)],
+      clouds=[(250, 80, 0.8)], cats=[(520, 470, 1.1)],
+      flowers=[(120, 0.5, ROOF), (300, 0.45, (244, 143, 177))],
+      birds=[(420, 120, 0.55)])
 d = ImageDraw.Draw(img)
 shadow(d, 175, 470, 90)
 block(d, 175, 470, 5, unit=76)
@@ -363,7 +422,9 @@ save(img, "takeaway")
 img, d = canvas()
 scene(img, d, sunside="right",
       trees=[(60, 0.7), (545, 0.7)], houses=[(160, 0.55), (440, 0.5)],
-      clouds=[(300, 70, 0.9)])
+      clouds=[(300, 70, 0.9)],
+      flowers=[(35, 0.5, ROOF), (565, 0.5, POND)],
+      birds=[(250, 110, 0.5), (350, 90, 0.45)])
 d = ImageDraw.Draw(img)
 u = 68
 yb = 430
