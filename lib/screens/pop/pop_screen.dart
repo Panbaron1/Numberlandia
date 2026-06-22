@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import '../../services/audio_service.dart';
 import '../../services/haptics_service.dart';
 import '../../theme.dart';
@@ -7,11 +8,11 @@ import '../../widgets/app_scaffold.dart';
 import '../../widgets/num_block.dart';
 import '../../widgets/scene_background.dart';
 
-/// Pop! — a calm number-recognition popper. A target numberblock is shown
-/// ("Pop the 4!"); a field of bobbing numberblock characters drifts around.
-/// Tap any to make it burst into confetti and vanish; the field refills.
-/// Popping the target plays a chime and picks a new target. No timer, no
-/// score, no fail — pure sandbox.
+/// Pop! — a number-recognition popper. A target numberblock is shown
+/// ("Pop the 4!"). A field of numberblock characters DRIFTS around the screen;
+/// only the ones matching the target pop (burst into confetti + vanish). Tap a
+/// wrong one and it shakes with a little ✗ — no pop, no penalty. The blocks
+/// speed up the more you pop. No timer, no score to lose — calm but tricky.
 class PopScreen extends StatefulWidget {
   const PopScreen({super.key});
 
@@ -21,11 +22,10 @@ class PopScreen extends StatefulWidget {
 
 class _Bubble {
   final int id;
-  final int value;
-  final double fx; // 0..1 horizontal centre
-  final double fy; // 0..1 vertical centre
-  final double phase; // bob offset
-  _Bubble(this.id, this.value, this.fx, this.fy, this.phase);
+  int value;
+  double fx, fy; // 0..1 centre
+  double vx, vy; // fractional velocity / sec
+  _Bubble(this.id, this.value, this.fx, this.fy, this.vx, this.vy);
 }
 
 class _Boom {
@@ -35,63 +35,142 @@ class _Boom {
   _Boom(this.id, this.at, this.color);
 }
 
-class _PopScreenState extends State<PopScreen> {
-  static const int _count = 7; // blocks on screen
+class _Nope {
+  final int id;
+  final Alignment at;
+  _Nope(this.id, this.at);
+}
+
+class _PopScreenState extends State<PopScreen>
+    with SingleTickerProviderStateMixin {
+  static const int _count = 8; // blocks on screen
+  static const double _mx = 0.09, _my = 0.10; // margins so blocks stay on-screen
   final _rng = math.Random();
   final List<_Bubble> _bubbles = [];
   final List<_Boom> _booms = [];
+  final List<_Nope> _nopes = [];
+  late final Ticker _ticker;
+  Duration _last = Duration.zero;
   int _seq = 0;
   int _target = 3;
   int _popped = 0;
+
+  double get _speed => (0.075 + _popped * 0.006).clamp(0.075, 0.24);
 
   @override
   void initState() {
     super.initState();
     _target = 1 + _rng.nextInt(9);
     for (int i = 0; i < _count; i++) {
-      _bubbles.add(_spawn(ensure: i == 0 ? _target : null));
+      _bubbles.add(_spawn());
+    }
+    _ensureTargets();
+    _ticker = createTicker(_tick)..start();
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
+
+  _Bubble _spawn({int? value}) {
+    final v = value ?? _rng.nextInt(11); // 0..10
+    final fx = _mx + _rng.nextDouble() * (1 - 2 * _mx);
+    final fy = _my + _rng.nextDouble() * (1 - 2 * _my);
+    final a = _rng.nextDouble() * math.pi * 2;
+    return _Bubble(_seq++, v, fx, fy, math.cos(a) * _speed, math.sin(a) * _speed);
+  }
+
+  /// Guarantee at least two target blocks are on the field to find.
+  void _ensureTargets() {
+    int have = _bubbles.where((b) => b.value == _target).length;
+    final pool = List<_Bubble>.from(_bubbles)..shuffle(_rng);
+    for (final b in pool) {
+      if (have >= 2) break;
+      if (b.value != _target) {
+        b.value = _target;
+        have++;
+      }
     }
   }
 
-  _Bubble _spawn({int? ensure}) {
-    final value = ensure ?? _rng.nextInt(11); // 0..10
-    final fx = 0.10 + _rng.nextDouble() * 0.80;
-    final fy = 0.14 + _rng.nextDouble() * 0.74;
-    return _Bubble(_seq++, value, fx, fy, _rng.nextDouble() * math.pi * 2);
+  void _tick(Duration elapsed) {
+    final dt = (_last == Duration.zero)
+        ? 0.0
+        : (elapsed - _last).inMicroseconds / 1e6;
+    _last = elapsed;
+    if (dt <= 0) return;
+    for (final b in _bubbles) {
+      b.fx += b.vx * dt;
+      b.fy += b.vy * dt;
+      if (b.fx < _mx) {
+        b.fx = _mx;
+        b.vx = b.vx.abs();
+      } else if (b.fx > 1 - _mx) {
+        b.fx = 1 - _mx;
+        b.vx = -b.vx.abs();
+      }
+      if (b.fy < _my) {
+        b.fy = _my;
+        b.vy = b.vy.abs();
+      } else if (b.fy > 1 - _my) {
+        b.fy = 1 - _my;
+        b.vy = -b.vy.abs();
+      }
+    }
+    setState(() {});
   }
 
-  bool get _targetOnField => _bubbles.any((b) => b.value == _target);
+  Future<void> _tap(_Bubble b) async {
+    final at = Alignment(b.fx * 2 - 1, b.fy * 2 - 1);
+    if (b.value != _target) {
+      // wrong block — a little shake + ✗, no pop
+      await HapticsService.instance.light();
+      setState(() => _nopes.add(_Nope(b.id, at)));
+      return;
+    }
 
-  Future<void> _pop(_Bubble b) async {
+    // correct — burst it and refill, then speed everything up a touch
     setState(() {
       _bubbles.remove(b);
-      _booms.add(_Boom(b.id, Alignment(b.fx * 2 - 1, b.fy * 2 - 1),
-          NColors.numBlockColor(b.value)));
+      _booms.add(_Boom(b.id, at, NColors.numBlockColor(b.value)));
       _popped++;
+      _bubbles.add(_spawn());
     });
+    await HapticsService.instance.medium();
+    await AudioService.instance.playPop();
 
-    if (b.value == _target) {
-      await HapticsService.instance.medium();
+    final remaining = _bubbles.where((x) => x.value == _target).length;
+    if (remaining == 0) {
+      // cleared them all — celebrate and pick a new target
       await AudioService.instance.playChime();
-      // pick a fresh target and make sure one exists on the field
       setState(() => _target = 1 + _rng.nextInt(9));
-    } else {
-      await HapticsService.instance.light();
-      await AudioService.instance.playPop();
     }
-
-    // refill after a short beat so the field stays lively
-    await Future<void>.delayed(const Duration(milliseconds: 280));
-    if (!mounted) return;
     setState(() {
-      final needTarget = !_targetOnField && _bubbles.length >= _count - 1;
-      _bubbles.add(_spawn(ensure: needTarget ? _target : null));
+      _ensureTargets();
+      _retune();
     });
+  }
+
+  /// Bring every block up to the current (ramped) speed.
+  void _retune() {
+    for (final b in _bubbles) {
+      final mag = math.sqrt(b.vx * b.vx + b.vy * b.vy);
+      if (mag == 0) continue;
+      b.vx = b.vx / mag * _speed;
+      b.vy = b.vy / mag * _speed;
+    }
   }
 
   void _removeBoom(int id) {
     if (!mounted) return;
     setState(() => _booms.removeWhere((x) => x.id == id));
+  }
+
+  void _removeNope(int id) {
+    if (!mounted) return;
+    setState(() => _nopes.removeWhere((x) => x.id == id));
   }
 
   @override
@@ -111,17 +190,24 @@ class _PopScreenState extends State<PopScreen> {
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, c) {
-                    // Block size scales with the field; smaller when cramped.
-                    final unit =
-                        (math.min(c.maxWidth, c.maxHeight) / 11).clamp(16.0, 30.0);
+                    final unit = (math.min(c.maxWidth, c.maxHeight) / 12)
+                        .clamp(15.0, 26.0)
+                        .toDouble();
                     return Stack(
                       children: [
                         for (final b in _bubbles)
                           _BubbleView(
                             key: ValueKey(b.id),
-                            bubble: b,
-                            unit: unit.toDouble(),
-                            onTap: () => _pop(b),
+                            at: Alignment(b.fx * 2 - 1, b.fy * 2 - 1),
+                            value: b.value,
+                            unit: unit,
+                            onTap: () => _tap(b),
+                          ),
+                        for (final n in _nopes)
+                          Align(
+                            key: ValueKey('nope${n.id}'),
+                            alignment: n.at,
+                            child: _Nudge(onDone: () => _removeNope(n.id)),
                           ),
                         for (final boom in _booms)
                           Align(
@@ -184,7 +270,6 @@ class _TargetBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(width: Gap.sm),
-          // Gentle popped tally — celebratory, not a score to beat.
           Row(
             children: [
               const Icon(Icons.auto_awesome_rounded,
@@ -203,59 +288,82 @@ class _TargetBanner extends StatelessWidget {
   }
 }
 
-// ── a single bobbing, tappable numberblock ───────────────────────────────────
+// ── a single drifting, tappable numberblock ─────────────────────────────────
 
-class _BubbleView extends StatefulWidget {
-  final _Bubble bubble;
+class _BubbleView extends StatelessWidget {
+  final Alignment at;
+  final int value;
   final double unit;
   final VoidCallback onTap;
   const _BubbleView(
-      {super.key, required this.bubble, required this.unit, required this.onTap});
+      {super.key,
+      required this.at,
+      required this.value,
+      required this.unit,
+      required this.onTap});
 
   @override
-  State<_BubbleView> createState() => _BubbleViewState();
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: at,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: BouncyNumBlock(value: value, unit: unit, showSign: false),
+      ),
+    );
+  }
 }
 
-class _BubbleViewState extends State<_BubbleView>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _bob;
+// ── wrong-tap nudge (shake + fading ✗) ───────────────────────────────────────
+
+class _Nudge extends StatefulWidget {
+  final VoidCallback onDone;
+  const _Nudge({required this.onDone});
+
+  @override
+  State<_Nudge> createState() => _NudgeState();
+}
+
+class _NudgeState extends State<_Nudge> with SingleTickerProviderStateMixin {
+  late final AnimationController _c;
 
   @override
   void initState() {
     super.initState();
-    _bob = AnimationController(
+    _c = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat();
+      duration: const Duration(milliseconds: 480),
+    )
+      ..addStatusListener((s) {
+        if (s == AnimationStatus.completed) widget.onDone();
+      })
+      ..forward();
   }
 
   @override
   void dispose() {
-    _bob.dispose();
+    _c.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final b = widget.bubble;
-    return Align(
-      alignment: Alignment(b.fx * 2 - 1, b.fy * 2 - 1),
+    return IgnorePointer(
       child: AnimatedBuilder(
-        animation: _bob,
-        builder: (context, child) {
-          final t = _bob.value * math.pi * 2 + b.phase;
+        animation: _c,
+        builder: (context, _) {
+          final t = _c.value;
+          final shake = math.sin(t * math.pi * 6) * 8 * (1 - t);
           return Transform.translate(
-            offset: Offset(math.sin(t) * 6, math.cos(t) * 5),
-            child: child,
+            offset: Offset(shake, 0),
+            child: Opacity(
+              opacity: (1 - t).clamp(0.0, 1.0),
+              child: Icon(Icons.close_rounded,
+                  color: NColors.takeAway, size: 34),
+            ),
           );
         },
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: widget.onTap,
-          // BouncyNumBlock springs in on appear for a lively "pop in".
-          child: BouncyNumBlock(
-              value: b.value, unit: widget.unit, showSign: false),
-        ),
       ),
     );
   }
@@ -344,7 +452,6 @@ class _BoomPainter extends CustomPainter {
     final fade = (1.0 - t).clamp(0.0, 1.0);
     final paint = Paint()..color = color.withAlpha((fade * 255).round());
 
-    // a quick flash ring at the start
     if (t < 0.4) {
       final r = 10 + t * 60;
       canvas.drawCircle(
@@ -360,7 +467,7 @@ class _BoomPainter extends CustomPainter {
     for (final p in parts) {
       final dist = p.speed * ease * 1.6;
       final dx = center.dx + math.cos(p.angle) * dist;
-      final dy = center.dy + math.sin(p.angle) * dist + t * t * 26; // gravity
+      final dy = center.dy + math.sin(p.angle) * dist + t * t * 26;
       final s = p.size * (1 - 0.35 * t);
       canvas.save();
       canvas.translate(dx, dy);

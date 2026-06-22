@@ -91,9 +91,10 @@ class RoomHeader extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-/// The app's unified button — a flat, soft-tinted rounded rectangle with an
-/// accent-coloured glyph (the Times Tables look). Calm, high-contrast, and
-/// dims briefly on press. Disabled state uses a muted grey.
+/// The app's one unified button — a chunky "numberblock" tile: a light
+/// accent-tinted face with a rounded-square shape, a darker bottom lip (so it
+/// reads as a 3D block), and dark-ink glyph. Presses *down* onto its base.
+/// Disabled state uses a muted grey. Used everywhere for consistency.
 class SoftButton extends StatefulWidget {
   final Widget child;
   final Color color;
@@ -127,14 +128,21 @@ class _SoftButtonState extends State<SoftButton> {
   @override
   Widget build(BuildContext context) {
     final enabled = widget.onTap != null;
-    // Opaque, lightly-tinted surface so buttons stand out from the busy
-    // scenery behind them (alphaBlend over the solid surface = no see-through).
-    final bg = enabled
-        ? Color.alphaBlend(
-            widget.color.withAlpha(_down ? 96 : 64), NColors.surface)
-        : Color.alphaBlend(NColors.inkMuted.withAlpha(20), NColors.surface);
-    // Dark ink glyphs for legibility on the soft tint (Spectroom-style).
+    final c = widget.color;
+    // Block face: a soft light→medium accent gradient over the surface, like a
+    // numberblock's gradient cell. Opaque, high-contrast for the dark glyph.
+    final faceTop =
+        enabled ? Color.alphaBlend(c.withAlpha(54), NColors.surface) : const Color(0xFFF0F1F4);
+    final faceBot =
+        enabled ? Color.alphaBlend(c.withAlpha(104), NColors.surface) : const Color(0xFFE7E9ED);
+    // Darker base the face presses onto (the "lip" of the block).
+    final base = enabled
+        ? Color.lerp(c, Colors.black, 0.22)!.withAlpha(255)
+        : NColors.inkMuted.withAlpha(70);
     final fg = enabled ? NColors.ink : NColors.inkMuted;
+    final r = BorderRadius.circular(widget.radius);
+    // Lip thickness shrinks on press so the face sinks onto the base.
+    final lip = _down ? 2.0 : 6.0;
 
     return GestureDetector(
       onTapDown: (_) => _set(true),
@@ -142,38 +150,48 @@ class _SoftButtonState extends State<SoftButton> {
       onTapCancel: () => _set(false),
       onTap: widget.onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 80),
+        duration: const Duration(milliseconds: 70),
+        curve: Curves.easeOut,
         width: widget.width,
         height: widget.height,
         decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(widget.radius),
-          border: Border.all(
-            color: enabled
-                ? widget.color.withAlpha(150)
-                : NColors.inkMuted.withAlpha(40),
-            width: 2,
-          ),
+          color: base,
+          borderRadius: r,
           boxShadow: enabled
               ? [
                   BoxShadow(
-                    color: widget.color.withAlpha(_down ? 20 : 46),
-                    blurRadius: _down ? 3 : 7,
-                    offset: Offset(0, _down ? 1 : 3),
+                    color: c.withAlpha(48),
+                    blurRadius: _down ? 3 : 8,
+                    offset: Offset(0, _down ? 1 : 4),
                   ),
                 ]
               : null,
         ),
-        child: Center(
-          child: DefaultTextStyle.merge(
-            style: TextStyle(
-              color: fg,
-              fontWeight: FontWeight.w700,
-              fontFamily: 'Fredoka',
+        padding: EdgeInsets.only(bottom: lip),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [faceTop, faceBot],
             ),
-            child: IconTheme.merge(
-              data: IconThemeData(color: fg),
-              child: widget.child,
+            borderRadius: r,
+            border: Border.all(
+              color: enabled ? c.withAlpha(140) : NColors.inkMuted.withAlpha(50),
+              width: 2,
+            ),
+          ),
+          child: Center(
+            child: DefaultTextStyle.merge(
+              style: TextStyle(
+                color: fg,
+                fontWeight: FontWeight.w800,
+                fontFamily: 'Fredoka',
+              ),
+              child: IconTheme.merge(
+                data: IconThemeData(color: fg),
+                child: widget.child,
+              ),
             ),
           ),
         ),

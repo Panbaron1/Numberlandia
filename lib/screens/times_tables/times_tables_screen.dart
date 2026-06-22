@@ -270,7 +270,14 @@ class _AxisSlider extends StatelessWidget {
               ],
             ),
           ),
-          _StepIcon(icon: Icons.remove, color: color, onTap: () => onStep(-1)),
+          SoftButton(
+              color: color,
+              onTap: () => onStep(-1),
+              width: 48,
+              height: 48,
+              radius: Radii.sm,
+              child: const Icon(Icons.remove, size: 24)),
+          const SizedBox(width: Gap.xs),
           Expanded(
             child: SliderTheme(
               data: SliderThemeData(
@@ -288,33 +295,15 @@ class _AxisSlider extends StatelessWidget {
               ),
             ),
           ),
-          _StepIcon(icon: Icons.add, color: color, onTap: () => onStep(1)),
+          const SizedBox(width: Gap.xs),
+          SoftButton(
+              color: color,
+              onTap: () => onStep(1),
+              width: 48,
+              height: 48,
+              radius: Radii.sm,
+              child: const Icon(Icons.add, size: 24)),
         ],
-      ),
-    );
-  }
-}
-
-class _StepIcon extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _StepIcon(
-      {required this.icon, required this.color, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: color.withAlpha(28),
-          borderRadius: BorderRadius.circular(Radii.sm),
-        ),
-        child: Icon(icon, color: color, size: 24),
       ),
     );
   }
