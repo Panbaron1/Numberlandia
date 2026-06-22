@@ -421,6 +421,26 @@ block_c(d, 430, CY, 2, unit_fit(2, BAND, 78))
 minus(d, 305, CY)
 save(img, "takeaway")
 
+# ── make it: a tower being built — 3 solid blocks + 1 ghost block on top ────
+img, d = canvas()
+mk = (126, 87, 194)
+cx, u = 300, 64
+gap = GAP
+total = 4 * u + 3 * gap
+top = CY - total / 2
+light = tuple(int(mk[i] + (255 - mk[i]) * 0.72) for i in range(3))
+for i in range(4):
+    y = top + i * (u + gap)
+    x = cx - u / 2
+    if i == 0:
+        # ghost block to add (light fill + outline) with a plus
+        d.rounded_rectangle([x, y, x + u, y + u], radius=RAD,
+                            fill=light + (255,), outline=mk + (255,), width=4)
+        plus(d, cx, y + u / 2, r=20, w=13, color=mk)
+    else:
+        square(d, x, y, mk, u, drawface=(i == 1))  # face on the top solid block
+save(img, "makeit")
+
 # ── pop: a numberblock mid-burst with confetti ──────────────────────────────
 img, d = canvas()
 d = ImageDraw.Draw(img)

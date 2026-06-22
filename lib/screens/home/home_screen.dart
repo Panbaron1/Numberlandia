@@ -12,6 +12,7 @@ import '../times_tables/times_tables_screen.dart';
 import '../number_machine/number_machine_screen.dart';
 import '../doubling/doubling_screen.dart';
 import '../pop/pop_screen.dart';
+import '../make_it/make_it_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -109,7 +110,7 @@ class HomeScreen extends StatelessWidget {
                 child: LayoutBuilder(
                   builder: (context, c) {
                     const spacing = Gap.md;
-                    final rows = (9 / cols).ceil();
+                    final rows = (10 / cols).ceil();
                     final cellW = (c.maxWidth - (cols - 1) * spacing) / cols;
                     final cellH =
                         (c.maxHeight - (rows - 1) * spacing) / rows;
@@ -130,6 +131,15 @@ class HomeScreen extends StatelessWidget {
                       onTap: () => Navigator.push(context,
                           MaterialPageRoute(
                               builder: (_) => const NumberMachineScreen())),
+                    ),
+                    ActivityCard(
+                      title: 'Make It',
+                      assetImage: 'assets/cards/makeit.png',
+                      color: NColors.makeIt,
+                      live: true,
+                      onTap: () => Navigator.push(context,
+                          MaterialPageRoute(
+                              builder: (_) => const MakeItScreen())),
                     ),
                     ActivityCard(
                       title: 'Add Up',
