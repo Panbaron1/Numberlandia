@@ -125,6 +125,23 @@ def block(d, cx, ybottom, n, unit=UNIT, force_color=None):
     return gw, gh
 
 
+def gh_of(n, unit):
+    rows, _ = dims(n)
+    return rows * unit + (rows - 1) * GAP
+
+
+def block_c(d, cx, cyc, n, unit, force_color=None):
+    """Draw an n-character centred on (cx, cyc). Returns (width, height)."""
+    return block(d, cx, cyc + gh_of(n, unit) / 2, n, unit, force_color)
+
+
+def unit_fit(n, band, hi):
+    """Largest unit so tower n fits within `band` px tall, capped at `hi`."""
+    rows, _ = dims(n)
+    u = (band - (rows - 1) * GAP) / rows
+    return min(u, hi)
+
+
 def plus(d, cx, cy, r=46, w=30, color=INK_SOFT):
     d.rounded_rectangle([cx - r, cy - w / 2, cx + r, cy + w / 2], radius=w / 2, fill=color)
     d.rounded_rectangle([cx - w / 2, cy - r, cx + w / 2, cy + r], radius=w / 2, fill=color)
@@ -333,26 +350,27 @@ def save(img, name):
     print("wrote", name)
 
 
-# ── numberblocks: characters 1 2 3 on a grassy hill, trees + house behind ────
+# Everything is centred on the canvas mid-line (CY) inside a safe vertical
+# BAND, so tall towers don't get clipped by the card's BoxFit.cover crop and
+# unequal towers read as aligned (centres line up).
+CY = 300
+BAND = 300
+
+# ── numberblocks: characters 1 2 3, centres aligned ─────────────────────────
 img, d = canvas()
 grad_bg(img, (167, 139, 250))
 d = ImageDraw.Draw(img)
-yb = 470
 for cx, n in zip((175, 320, 470), (1, 2, 3)):
-    shadow(d, cx, yb, 72)
-    block(d, cx, yb, n, unit=74)
+    block_c(d, cx, CY, n, unit_fit(n, BAND, 78))
 save(img, "numberblocks")
 
-# ── add up: 2 + 3 in a sunny garden ──────────────────────────────────────────
+# ── add up: 2 + 3 ────────────────────────────────────────────────────────────
 img, d = canvas()
 grad_bg(img, (52, 199, 89))
 d = ImageDraw.Draw(img)
-yb = 470
-shadow(d, 185, yb, 110)
-_, ha = block(d, 185, yb, 2, unit=84)
-shadow(d, 430, yb, 150)
-_, hb = block(d, 430, yb, 3, unit=84)
-plus(d, 305, yb - (ha + hb) / 4)  # midpoint of the two tower centres
+block_c(d, 185, CY, 2, unit_fit(2, BAND, 82))
+block_c(d, 430, CY, 3, unit_fit(3, BAND, 82))
+plus(d, 305, CY)
 save(img, "addup")
 
 # ── number line: a character on a path, trees lining it ──────────────────────
@@ -370,12 +388,9 @@ save(img, "numberline")
 img, d = canvas()
 grad_bg(img, (255, 107, 157))
 d = ImageDraw.Draw(img)
-yb = 470
-shadow(d, 175, yb, 100)
-_, hd1 = block(d, 175, yb, 2, unit=80)
-shadow(d, 445, yb, 150)
-_, hd2 = block(d, 445, yb, 4, unit=80)
-arrow(d, 270, 330, yb - (hd1 + hd2) / 4)
+block_c(d, 165, CY, 2, unit_fit(2, BAND, 80))
+block_c(d, 470, CY, 4, unit_fit(4, BAND, 80))
+arrow(d, 250, 330, CY)  # tip at ~372, clears the 4 (left edge ~388)
 save(img, "doubling")
 
 # ── times tables: a 3x3 array in a tidy orchard ──────────────────────────────
@@ -383,13 +398,12 @@ img, d = canvas()
 grad_bg(img, (255, 140, 66))
 d = ImageDraw.Draw(img)
 rows = cols = 3
-unit = 112
+unit = 104
 gw = cols * unit + (cols - 1) * GAP
 gh = rows * unit + (rows - 1) * GAP
 ox = (S - gw) / 2
-oy = (S - gh) / 2 + 24
+oy = (S - gh) / 2
 tcol = (255, 140, 66)
-shadow(d, S / 2, oy + gh, gw)
 for r in range(rows):
     for c in range(cols):
         x = ox + c * (unit + GAP)
@@ -402,43 +416,28 @@ img, d = canvas()
 grad_bg(img, (79, 142, 247))
 d = ImageDraw.Draw(img)
 million = (79, 142, 247)
-unit = 80
-count = 5
-gh = count * unit + (count - 1) * GAP
-oy = 470 - gh
-cx = 290
-shadow(d, cx, 470, unit + 20)
-for i in range(count):
-    y = oy + (count - 1 - i) * (unit + GAP)
-    square(d, cx - unit / 2, y, million, unit, drawface=(i == count - 1))
+block_c(d, 300, CY, 5, unit_fit(5, BAND, 80), force_color=million)
 save(img, "million")
 
 # ── take away: 5 - 2, cat watching ───────────────────────────────────────────
 img, d = canvas()
 grad_bg(img, (255, 107, 107))
 d = ImageDraw.Draw(img)
-yb = 470
-shadow(d, 175, yb, 90)
-_, ht1 = block(d, 175, yb, 5, unit=76)
-shadow(d, 430, yb, 110)
-_, ht2 = block(d, 430, yb, 2, unit=84)
-minus(d, 305, yb - (ht1 + ht2) / 4)
+block_c(d, 175, CY, 5, unit_fit(5, BAND, 80))
+block_c(d, 430, CY, 2, unit_fit(2, BAND, 78))
+minus(d, 305, CY)
 save(img, "takeaway")
 
 # ── clock: 1 2 : 3 0 under the sun, village behind ───────────────────────────
 img, d = canvas()
 grad_bg(img, (92, 107, 192))
 d = ImageDraw.Draw(img)
-u = 68
-yb = 430
-for cx, n in ((125, 1), (210, 2)):
-    shadow(d, cx, yb, u + 8)
-    block(d, cx, yb, n, unit=u)
-for dy in (-30, 30):
-    d.ellipse([300 - 12, yb - 95 + dy - 12, 300 + 12, yb - 95 + dy + 12], fill=INK_SOFT)
-for cx, n in ((375, 3), (495, 4)):
-    shadow(d, cx, yb, u + 8)
-    block(d, cx, yb, n, unit=u)
+u = 58
+for cx, n in ((115, 1), (200, 2), (380, 3), (480, 4)):
+    block_c(d, cx, CY, n, u)
+# colon between HH and MM, centred on the mid-line
+for dy in (-26, 26):
+    d.ellipse([300 - 11, CY + dy - 11, 300 + 11, CY + dy + 11], fill=INK_SOFT)
 save(img, "clock")
 
 print("done")
