@@ -23,7 +23,7 @@ class NumberlandiaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Numberlandia',
+      title: 'NumBlox',
       theme: buildNumberlandiaTheme(),
       home: const HomeScreen(),
       debugShowCheckedModeBanner: false,

@@ -7,6 +7,6 @@ void main() {
   testWidgets('App boots and shows the home wordmark', (tester) async {
     await tester.pumpWidget(const NumberlandiaApp());
     await tester.pumpAndSettle();
-    expect(find.text('Numberlandia'), findsOneWidget);
+    expect(find.text('NumBlox'), findsOneWidget);
   });
 }

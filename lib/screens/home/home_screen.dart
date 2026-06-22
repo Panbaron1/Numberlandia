@@ -42,7 +42,7 @@ class HomeScreen extends StatelessWidget {
                             end: Alignment.centerRight,
                           ).createShader(bounds),
                           child: const Text(
-                            'Numberlandia',
+                            'NumBlox',
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.w900,
