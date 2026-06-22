@@ -428,6 +428,29 @@ block_c(d, 430, CY, 2, unit_fit(2, BAND, 78))
 minus(d, 305, CY)
 save(img, "takeaway")
 
+# ── pop: a numberblock mid-burst with confetti ──────────────────────────────
+img, d = canvas()
+grad_bg(img, (18, 194, 233))
+d = ImageDraw.Draw(img)
+# confetti ring around the centre, in the spectrum palette
+import random as _r
+_r.seed(7)
+cx0, cy0 = 300, 300
+petals = [(255, 138, 128), (255, 215, 64), (64, 196, 255),
+          (105, 240, 174), (179, 136, 255), (244, 143, 177)]
+for k in range(16):
+    a = k / 16 * 2 * math.pi
+    dist = 150 + _r.randint(-10, 30)
+    px = cx0 + math.cos(a) * dist
+    py = cy0 + math.sin(a) * dist
+    s = _r.randint(16, 30)
+    c = petals[k % len(petals)]
+    d.rounded_rectangle([px - s / 2, py - s / 2, px + s / 2, py + s / 2],
+                        radius=s * 0.25, fill=c + (255,))
+# a partly-popped 2-character at the centre (top block bursting)
+block_c(d, cx0, cy0 + 18, 2, 96, force_color=(64, 196, 255))
+save(img, "pop")
+
 # ── clock: 1 2 : 3 0 under the sun, village behind ───────────────────────────
 img, d = canvas()
 grad_bg(img, (92, 107, 192))

@@ -15,6 +15,7 @@ import 'package:numberlandia/screens/doubling/doubling_screen.dart';
 import 'package:numberlandia/screens/times_tables/times_tables_screen.dart';
 import 'package:numberlandia/screens/build_a_million/build_a_million_screen.dart';
 import 'package:numberlandia/screens/clock/clock_screen.dart';
+import 'package:numberlandia/screens/pop/pop_screen.dart';
 
 // The worst real-device shapes: tiny-narrow portrait, short landscape, small square.
 const _viewports = <Size>[
@@ -34,6 +35,7 @@ final _screens = <String, Widget Function()>{
   'Times Tables': () => const TimesTablesScreen(),
   'Build a Million': () => const BuildAMillionScreen(),
   'Clock': () => const ClockScreen(),
+  'Pop': () => const PopScreen(),
 };
 
 Future<void> _pumpAt(WidgetTester tester, Size size, Widget screen) async {

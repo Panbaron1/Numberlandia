@@ -11,6 +11,7 @@ import '../take_away/take_away_screen.dart';
 import '../times_tables/times_tables_screen.dart';
 import '../number_machine/number_machine_screen.dart';
 import '../doubling/doubling_screen.dart';
+import '../pop/pop_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -64,11 +65,13 @@ class HomeScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Mascot cluster — the whole crew 0–10 waving hello
+                  // Mascot cluster — the whole crew 0–10, tucked into the
+                  // upper-right corner (bounded box so it stays compact).
                   if (width >= 500) ...[
-                    Flexible(
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: Gap.md, top: 4),
+                    Padding(
+                      padding: const EdgeInsets.only(right: Gap.sm, top: 2),
+                      child: SizedBox(
+                        width: 170,
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.centerRight,
@@ -77,9 +80,9 @@ class HomeScreen extends StatelessWidget {
                             children: [
                               for (int i = 0; i <= 10; i++)
                                 Padding(
-                                  padding: const EdgeInsets.only(left: 5),
+                                  padding: const EdgeInsets.only(left: 4),
                                   child: BouncyNumBlock(
-                                      value: i, unit: 13, showSign: false),
+                                      value: i, unit: 11, showSign: false),
                                 ),
                             ],
                           ),
@@ -106,7 +109,7 @@ class HomeScreen extends StatelessWidget {
                 child: LayoutBuilder(
                   builder: (context, c) {
                     const spacing = Gap.md;
-                    final rows = (8 / cols).ceil();
+                    final rows = (9 / cols).ceil();
                     final cellW = (c.maxWidth - (cols - 1) * spacing) / cols;
                     final cellH =
                         (c.maxHeight - (rows - 1) * spacing) / rows;
@@ -190,6 +193,15 @@ class HomeScreen extends StatelessWidget {
                       onTap: () => Navigator.push(context,
                           MaterialPageRoute(
                               builder: (_) => const ClockScreen())),
+                    ),
+                    ActivityCard(
+                      title: 'Pop!',
+                      assetImage: 'assets/cards/pop.png',
+                      color: NColors.pop,
+                      live: true,
+                      onTap: () => Navigator.push(context,
+                          MaterialPageRoute(
+                              builder: (_) => const PopScreen())),
                     ),
                       ],
                     );

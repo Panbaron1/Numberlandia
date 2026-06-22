@@ -16,6 +16,7 @@ class NColors {
   static const addUp      = Color(0xFF34C759); // green
   static const clock      = Color(0xFF5C6BC0); // indigo
   static const takeAway   = Color(0xFFFF6B6B); // coral red
+  static const pop        = Color(0xFF12C2E9); // cyan
 
   static const primary = million;
   static const zero    = Color(0xFFFFCC00); // gold
