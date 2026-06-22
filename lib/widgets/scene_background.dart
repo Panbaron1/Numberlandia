@@ -34,9 +34,10 @@ class _GradientGrainPainter extends CustomPainter {
     Color(0xFFFF6B9D), // pink
   ];
 
-  /// Soften a stop: lift toward white, then nudge toward the room accent.
+  /// Soften a stop: lift well toward white (light backdrop), then a faint
+  /// nudge toward the room accent.
   Color _soft(Color c) =>
-      Color.lerp(Color.lerp(c, Colors.white, 0.50)!, tint, 0.16)!;
+      Color.lerp(Color.lerp(c, Colors.white, 0.66)!, tint, 0.11)!;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -80,12 +81,12 @@ class _GradientGrainPainter extends CustomPainter {
     }
     canvas.drawPoints(PointMode.points, light,
         Paint()
-          ..color = Colors.white.withAlpha(22)
+          ..color = Colors.white.withAlpha(20)
           ..strokeWidth = 1.4
           ..strokeCap = StrokeCap.round);
     canvas.drawPoints(PointMode.points, dark,
         Paint()
-          ..color = const Color(0xFF1A1F36).withAlpha(14)
+          ..color = const Color(0xFF1A1F36).withAlpha(9)
           ..strokeWidth = 1.4
           ..strokeCap = StrokeCap.round);
   }

@@ -64,20 +64,26 @@ class HomeScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Mascot cluster — a few number characters waving hello
+                  // Mascot cluster — the whole crew 0–10 waving hello
                   if (width >= 500) ...[
-                    Padding(
-                      padding: const EdgeInsets.only(right: Gap.md, top: 4),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          for (int i = 1; i <= 4; i++)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 6),
-                              child: BouncyNumBlock(
-                                  value: i, unit: 14, showSign: false),
-                            ),
-                        ],
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: Gap.md, top: 4),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              for (int i = 0; i <= 10; i++)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 5),
+                                  child: BouncyNumBlock(
+                                      value: i, unit: 13, showSign: false),
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ],

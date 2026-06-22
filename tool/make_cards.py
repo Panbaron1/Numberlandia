@@ -16,8 +16,8 @@ def _lerp(a, b, t):
 
 
 def _soft(c, accent):
-    c = _lerp(c, (255, 255, 255), 0.50)  # lift toward white
-    return _lerp(c, accent, 0.16)        # nudge toward the card accent
+    c = _lerp(c, (255, 255, 255), 0.66)  # lift well toward white (lighter)
+    return _lerp(c, accent, 0.11)        # faint nudge toward the card accent
 
 
 def _multi(stops, t):
@@ -36,8 +36,8 @@ def grad_bg(img, accent):
     g.putdata([lut[x + y] for y in range(S) for x in range(S)])
     img.paste(g, (0, 0))
     # fine film grain
-    noise = Image.effect_noise((S, S), 20).convert("L")
-    overlay = Image.merge("RGBA", (noise, noise, noise, Image.new("L", (S, S), 24)))
+    noise = Image.effect_noise((S, S), 18).convert("L")
+    overlay = Image.merge("RGBA", (noise, noise, noise, Image.new("L", (S, S), 18)))
     img.alpha_composite(overlay)
 
 S = 600                      # canvas (square, rendered BoxFit.cover in-app)
@@ -347,11 +347,12 @@ save(img, "numberblocks")
 img, d = canvas()
 grad_bg(img, (52, 199, 89))
 d = ImageDraw.Draw(img)
-shadow(d, 185, 470, 110)
-block(d, 185, 470, 2, unit=84)
-plus(d, 305, 320)
-shadow(d, 430, 470, 150)
-block(d, 430, 470, 3, unit=84)
+yb = 470
+shadow(d, 185, yb, 110)
+_, ha = block(d, 185, yb, 2, unit=84)
+shadow(d, 430, yb, 150)
+_, hb = block(d, 430, yb, 3, unit=84)
+plus(d, 305, yb - (ha + hb) / 4)  # midpoint of the two tower centres
 save(img, "addup")
 
 # ── number line: a character on a path, trees lining it ──────────────────────
@@ -369,11 +370,12 @@ save(img, "numberline")
 img, d = canvas()
 grad_bg(img, (255, 107, 157))
 d = ImageDraw.Draw(img)
-shadow(d, 175, 470, 100)
-block(d, 175, 470, 2, unit=80)
-arrow(d, 270, 330, 320)
-shadow(d, 445, 470, 150)
-block(d, 445, 470, 4, unit=80)
+yb = 470
+shadow(d, 175, yb, 100)
+_, hd1 = block(d, 175, yb, 2, unit=80)
+shadow(d, 445, yb, 150)
+_, hd2 = block(d, 445, yb, 4, unit=80)
+arrow(d, 270, 330, yb - (hd1 + hd2) / 4)
 save(img, "doubling")
 
 # ── times tables: a 3x3 array in a tidy orchard ──────────────────────────────
@@ -415,11 +417,12 @@ save(img, "million")
 img, d = canvas()
 grad_bg(img, (255, 107, 107))
 d = ImageDraw.Draw(img)
-shadow(d, 175, 470, 90)
-block(d, 175, 470, 5, unit=76)
-minus(d, 305, 320)
-shadow(d, 430, 470, 110)
-block(d, 430, 470, 2, unit=84)
+yb = 470
+shadow(d, 175, yb, 90)
+_, ht1 = block(d, 175, yb, 5, unit=76)
+shadow(d, 430, yb, 110)
+_, ht2 = block(d, 430, yb, 2, unit=84)
+minus(d, 305, yb - (ht1 + ht2) / 4)
 save(img, "takeaway")
 
 # ── clock: 1 2 : 3 0 under the sun, village behind ───────────────────────────
