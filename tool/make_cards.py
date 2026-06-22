@@ -358,7 +358,6 @@ BAND = 300
 
 # ── numberblocks: characters 1 2 3, centres aligned ─────────────────────────
 img, d = canvas()
-grad_bg(img, (167, 139, 250))
 d = ImageDraw.Draw(img)
 for cx, n in zip((175, 320, 470), (1, 2, 3)):
     block_c(d, cx, CY, n, unit_fit(n, BAND, 78))
@@ -366,7 +365,6 @@ save(img, "numberblocks")
 
 # ── add up: 2 + 3 ────────────────────────────────────────────────────────────
 img, d = canvas()
-grad_bg(img, (52, 199, 89))
 d = ImageDraw.Draw(img)
 block_c(d, 185, CY, 2, unit_fit(2, BAND, 82))
 block_c(d, 430, CY, 3, unit_fit(3, BAND, 82))
@@ -375,7 +373,6 @@ save(img, "addup")
 
 # ── number line: a character on a path, trees lining it ──────────────────────
 img, d = canvas()
-grad_bg(img, (45, 201, 160))
 d = ImageDraw.Draw(img)
 d.rounded_rectangle([50, 486, 550, 516], radius=15, fill=(45, 201, 160, 255))  # teal track
 for tx in range(95, 541, 90):
@@ -386,7 +383,6 @@ save(img, "numberline")
 
 # ── doubling: 2 -> 4, pond + duck ────────────────────────────────────────────
 img, d = canvas()
-grad_bg(img, (255, 107, 157))
 d = ImageDraw.Draw(img)
 block_c(d, 165, CY, 2, unit_fit(2, BAND, 80))
 block_c(d, 470, CY, 4, unit_fit(4, BAND, 80))
@@ -395,7 +391,6 @@ save(img, "doubling")
 
 # ── times tables: a 3x3 array in a tidy orchard ──────────────────────────────
 img, d = canvas()
-grad_bg(img, (255, 140, 66))
 d = ImageDraw.Draw(img)
 rows = cols = 3
 unit = 104
@@ -413,7 +408,6 @@ save(img, "timestables")
 
 # ── build a million: a tall tower beside a house ─────────────────────────────
 img, d = canvas()
-grad_bg(img, (79, 142, 247))
 d = ImageDraw.Draw(img)
 million = (79, 142, 247)
 block_c(d, 300, CY, 5, unit_fit(5, BAND, 80), force_color=million)
@@ -421,7 +415,6 @@ save(img, "million")
 
 # ── take away: 5 - 2, cat watching ───────────────────────────────────────────
 img, d = canvas()
-grad_bg(img, (255, 107, 107))
 d = ImageDraw.Draw(img)
 block_c(d, 175, CY, 5, unit_fit(5, BAND, 80))
 block_c(d, 430, CY, 2, unit_fit(2, BAND, 78))
@@ -430,7 +423,6 @@ save(img, "takeaway")
 
 # ── pop: a numberblock mid-burst with confetti ──────────────────────────────
 img, d = canvas()
-grad_bg(img, (18, 194, 233))
 d = ImageDraw.Draw(img)
 # confetti ring around the centre, in the spectrum palette
 import random as _r
@@ -453,7 +445,6 @@ save(img, "pop")
 
 # ── clock: 1 2 : 3 0 under the sun, village behind ───────────────────────────
 img, d = canvas()
-grad_bg(img, (92, 107, 192))
 d = ImageDraw.Draw(img)
 u = 58
 for cx, n in ((115, 1), (200, 2), (380, 3), (480, 4)):

@@ -70,9 +70,10 @@ class _NumberLineScreenState extends State<NumberLineScreen> {
           SoftButton(
             color: NColors.zero,
             onTap: _jumpToZero,
-            height: 48,
-            width: 92,
-            child: const Text('Go to 0', style: TextStyle(fontSize: 15)),
+            height: 50,
+            width: 50,
+            radius: Radii.sm,
+            child: const Text('0', style: TextStyle(fontSize: 24)),
           ),
           const SizedBox(width: Gap.sm),
         ],
@@ -182,19 +183,17 @@ class _StepControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Gap.md, 0, Gap.md, 0),
-      child: Row(
+      padding: const EdgeInsets.symmetric(horizontal: Gap.md),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: Gap.sm,
+        runSpacing: Gap.sm,
         children: [
           _Btn(label: '−100', delta: -100, color: NColors.numberLine.withAlpha(180), onTap: onStep),
-          const SizedBox(width: Gap.xs),
           _Btn(label: '−10', delta: -10, color: NColors.numberLine.withAlpha(210), onTap: onStep),
-          const SizedBox(width: Gap.xs),
-          _Btn(label: '−1', delta: -1, color: NColors.numberLine, onTap: onStep, big: true),
-          const SizedBox(width: Gap.xs),
-          _Btn(label: '+1', delta: 1, color: NColors.million, onTap: onStep, big: true),
-          const SizedBox(width: Gap.xs),
+          _Btn(label: '−1', delta: -1, color: NColors.numberLine, onTap: onStep),
+          _Btn(label: '+1', delta: 1, color: NColors.million, onTap: onStep),
           _Btn(label: '+10', delta: 10, color: NColors.million.withAlpha(210), onTap: onStep),
-          const SizedBox(width: Gap.xs),
           _Btn(label: '+100', delta: 100, color: NColors.million.withAlpha(180), onTap: onStep),
         ],
       ),
@@ -207,27 +206,28 @@ class _Btn extends StatelessWidget {
   final int delta;
   final Color color;
   final Future<void> Function(int) onTap;
-  final bool big;
 
   const _Btn({
     required this.label,
     required this.delta,
     required this.color,
     required this.onTap,
-    this.big = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      flex: big ? 2 : 1,
-      child: SoftButton(
-        color: color,
-        onTap: () => onTap(delta),
-        height: big ? 76 : 60,
-        radius: Radii.md,
-        child: Text(label,
-            style: TextStyle(fontSize: big ? 24 : 15)),
+    return SoftButton(
+      color: color,
+      onTap: () => onTap(delta),
+      width: 64,
+      height: 64,
+      radius: Radii.md,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(label, style: const TextStyle(fontSize: 18)),
+        ),
       ),
     );
   }

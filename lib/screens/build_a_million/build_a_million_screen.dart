@@ -87,56 +87,31 @@ class _Body extends StatelessWidget {
           // Place value blocks
           _PlaceValueRow(notifier: notifier),
           const Spacer(),
-          // Add buttons
+          // Add buttons — square tiles, wrap on narrow screens
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Gap.md),
-            child: Column(
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: Gap.sm,
+              runSpacing: Gap.sm,
               children: [
-                Row(
-                  children: [
-                    _AddButton(label: '+1', amount: 1, onTap: onTap),
-                    const SizedBox(width: Gap.sm),
-                    _AddButton(label: '+10', amount: 10, onTap: onTap),
-                    const SizedBox(width: Gap.sm),
-                    _AddButton(label: '+100', amount: 100, onTap: onTap),
-                  ],
-                ),
-                const SizedBox(height: Gap.sm),
-                Row(
-                  children: [
-                    _AddButton(label: '+1,000', amount: 1000, onTap: onTap),
-                    const SizedBox(width: Gap.sm),
-                    _AddButton(
-                        label: '+10,000', amount: 10000, onTap: onTap),
-                    const SizedBox(width: Gap.sm),
-                    _AddButton(
-                        label: '+100,000', amount: 100000, onTap: onTap),
-                  ],
-                ),
+                _AddButton(label: '+1', amount: 1, onTap: onTap),
+                _AddButton(label: '+10', amount: 10, onTap: onTap),
+                _AddButton(label: '+100', amount: 100, onTap: onTap),
+                _AddButton(label: '+1K', amount: 1000, onTap: onTap),
+                _AddButton(label: '+10K', amount: 10000, onTap: onTap),
+                _AddButton(label: '+100K', amount: 100000, onTap: onTap),
               ],
             ),
           ),
           const SizedBox(height: Gap.md),
-          // Reset
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: Gap.md),
-            child: SoftButton(
-              color: NColors.inkSoft,
-              onTap: onReset,
-              height: 58,
-              width: double.infinity,
-              child: const FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.refresh_rounded, size: 22),
-                    SizedBox(width: Gap.sm),
-                    Text('Reset to zero', style: TextStyle(fontSize: 17)),
-                  ],
-                ),
-              ),
-            ),
+          // Reset — square icon tile
+          SoftButton(
+            color: NColors.inkSoft,
+            onTap: onReset,
+            height: 60,
+            width: 60,
+            child: const Icon(Icons.refresh_rounded, size: 28),
           ),
           const SizedBox(height: Gap.xl),
         ],
@@ -325,12 +300,17 @@ class _AddButton extends StatelessWidget {
         : (amount >= 100
             ? NColors.numberLine
             : NColors.doubling);
-    return Expanded(
-      child: SoftButton(
-        color: color,
-        onTap: () => onTap(amount),
-        height: 66,
-        child: Text(label, style: const TextStyle(fontSize: 16)),
+    return SoftButton(
+      color: color,
+      onTap: () => onTap(amount),
+      width: 76,
+      height: 76,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(label, style: const TextStyle(fontSize: 18)),
+        ),
       ),
     );
   }

@@ -219,47 +219,40 @@ class _Controls extends StatelessWidget {
     return Column(
       children: [
         // ── −1 / Double it! / +1 ─────────────────────────────────────
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: Gap.lg),
-          child: Row(
-            children: [
-              SoftButton(
-                color: NColors.doubling,
-                onTap: notifier.value > DoublingNotifier.min
-                    ? () => onStep(-1)
-                    : null,
-                width: 72,
-                height: 72,
-                radius: Radii.lg,
-                child: const Icon(Icons.remove, size: 34),
-              ),
-              const SizedBox(width: Gap.md),
-              Expanded(
-                child: SoftButton(
-                  color: NColors.doubling,
-                  onTap: notifier.value < DoublingNotifier.max ? onDouble : null,
-                  height: 72,
-                  radius: Radii.lg,
-                  child: const FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text('Double it!  ×2',
-                        style: TextStyle(fontSize: 22)),
-                  ),
-                ),
-              ),
-              const SizedBox(width: Gap.md),
-              SoftButton(
-                color: NColors.doubling,
-                onTap: notifier.value < DoublingNotifier.max
-                    ? () => onStep(1)
-                    : null,
-                width: 72,
-                height: 72,
-                radius: Radii.lg,
-                child: const Icon(Icons.add, size: 34),
-              ),
-            ],
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SoftButton(
+              color: NColors.doubling,
+              onTap: notifier.value > DoublingNotifier.min
+                  ? () => onStep(-1)
+                  : null,
+              width: 72,
+              height: 72,
+              radius: Radii.lg,
+              child: const Icon(Icons.remove, size: 34),
+            ),
+            const SizedBox(width: Gap.md),
+            SoftButton(
+              color: NColors.doubling,
+              onTap: notifier.value < DoublingNotifier.max ? onDouble : null,
+              width: 72,
+              height: 72,
+              radius: Radii.lg,
+              child: const Text('×2', style: TextStyle(fontSize: 28)),
+            ),
+            const SizedBox(width: Gap.md),
+            SoftButton(
+              color: NColors.doubling,
+              onTap: notifier.value < DoublingNotifier.max
+                  ? () => onStep(1)
+                  : null,
+              width: 72,
+              height: 72,
+              radius: Radii.lg,
+              child: const Icon(Icons.add, size: 34),
+            ),
+          ],
         ),
         const SizedBox(height: Gap.sm),
         // ── Slider 1..5000 ───────────────────────────────────────────

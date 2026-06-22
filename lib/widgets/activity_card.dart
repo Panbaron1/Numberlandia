@@ -53,18 +53,17 @@ class _ActivityCardState extends State<ActivityCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ── Full-bleed numberblock scene ─────────────────────
+                // ── Spectrum surface with the characters floating on it ──
                 Expanded(
                   flex: 7,
                   child: Container(
+                    width: double.infinity,
                     decoration: BoxDecoration(
-                      gradient: softGradient(widget.color,
-                          topAlpha: 0.26, botAlpha: 0.10),
+                      gradient: spectrumGradient(widget.color),
                     ),
-                    child: Image.asset(
-                      widget.assetImage,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
+                    child: Padding(
+                      padding: const EdgeInsets.all(Gap.md),
+                      child: Image.asset(widget.assetImage, fit: BoxFit.contain),
                     ),
                   ),
                 ),

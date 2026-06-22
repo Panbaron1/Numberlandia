@@ -209,26 +209,26 @@ class _BlockPanel extends StatelessWidget {
         // − / + directly under the block (step of 1)
         if (onStep != null) ...[
           const SizedBox(height: Gap.sm),
-          Row(
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: Gap.sm,
+            runSpacing: Gap.sm,
             children: [
-              Expanded(
-                child: SoftButton(
-                  color: color,
-                  onTap: () => onStep!(-1),
-                  height: 64,
-                  radius: Radii.md,
-                  child: const Icon(Icons.remove, size: 36),
-                ),
+              SoftButton(
+                color: color,
+                onTap: () => onStep!(-1),
+                width: 58,
+                height: 58,
+                radius: Radii.md,
+                child: const Icon(Icons.remove, size: 32),
               ),
-              const SizedBox(width: Gap.sm),
-              Expanded(
-                child: SoftButton(
-                  color: color,
-                  onTap: () => onStep!(1),
-                  height: 64,
-                  radius: Radii.md,
-                  child: const Icon(Icons.add, size: 36),
-                ),
+              SoftButton(
+                color: color,
+                onTap: () => onStep!(1),
+                width: 58,
+                height: 58,
+                radius: Radii.md,
+                child: const Icon(Icons.add, size: 32),
               ),
             ],
           ),

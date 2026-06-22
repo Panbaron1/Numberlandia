@@ -124,6 +124,24 @@ LinearGradient softGradient(Color c, {double topAlpha = 0.20, double botAlpha = 
   );
 }
 
+/// Soft spectrum gradient (blue→teal→lavender→pink) blended toward [tint] and
+/// lifted toward white — the same calm backdrop used behind the rooms, so a
+/// card's surface matches its room. Characters float on top of this.
+LinearGradient spectrumGradient(Color tint) {
+  Color soft(Color c) =>
+      Color.lerp(Color.lerp(c, Colors.white, 0.66)!, tint, 0.11)!;
+  return LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: const [
+      Color(0xFF4F8EF7),
+      Color(0xFF2DC9A0),
+      Color(0xFFA78BFA),
+      Color(0xFFFF6B9D),
+    ].map(soft).toList(),
+  );
+}
+
 /// Vivid gradient (for solid buttons / headers).
 LinearGradient vividGradient(Color c) {
   return LinearGradient(

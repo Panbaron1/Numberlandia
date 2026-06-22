@@ -55,10 +55,15 @@ class _NumberMachineScreenState extends State<NumberMachineScreen> {
         child: AnimatedBuilder(
         animation: _n,
         builder: (context, _) => SafeArea(
-          child: Column(
+          child: LayoutBuilder(
+            builder: (context, cons) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: cons.maxHeight),
+                child: Column(
             children: [
               // ── One numberblock character per digit, in a row ───────
-              Expanded(
+              SizedBox(
+                height: (cons.maxHeight * 0.46).clamp(150.0, 520.0),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(Gap.md, Gap.md, Gap.md, 0),
                   child: Row(
@@ -96,23 +101,23 @@ class _NumberMachineScreenState extends State<NumberMachineScreen> {
               // ── Keypad: 0 1 2 3 4 5 6 7 8 9 (+ backspace, clear) ────
               Padding(
                 padding: const EdgeInsets.fromLTRB(Gap.sm, 0, Gap.sm, Gap.md),
-                child: Row(
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: Gap.xs,
+                  runSpacing: Gap.xs,
                   children: [
                     _Key(
                       color: NColors.inkSoft,
                       onTap: _back,
-                      child: const Icon(Icons.backspace_rounded, size: 28),
+                      child: const Icon(Icons.backspace_rounded, size: 26),
                     ),
-                    for (int d = 0; d <= 9; d++) ...[
-                      const SizedBox(width: Gap.xs),
+                    for (int d = 0; d <= 9; d++)
                       _Key(
                         color: NColors.numBlockColor(d),
                         onTap: () => _digit(d),
                         child: Text('$d',
-                            style: const TextStyle(fontSize: 30)),
+                            style: const TextStyle(fontSize: 28)),
                       ),
-                    ],
-                    const SizedBox(width: Gap.xs),
                     _Key(
                       color: NColors.doubling,
                       onTap: _clear,
@@ -122,6 +127,9 @@ class _NumberMachineScreenState extends State<NumberMachineScreen> {
                 ),
               ),
             ],
+                ),
+              ),
+            ),
           ),
         ),
       )),
@@ -138,14 +146,13 @@ class _Key extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: SoftButton(
-        color: color,
-        onTap: onTap,
-        height: 76,
-        radius: Radii.md,
-        child: child,
-      ),
+    return SoftButton(
+      color: color,
+      onTap: onTap,
+      width: 58,
+      height: 58,
+      radius: Radii.md,
+      child: child,
     );
   }
 }
