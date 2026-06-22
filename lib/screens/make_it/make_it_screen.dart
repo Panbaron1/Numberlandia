@@ -7,10 +7,11 @@ import '../../widgets/app_scaffold.dart';
 import '../../widgets/num_block.dart';
 import '../../widgets/scene_background.dart';
 
-/// Make It — build a number. A target is shown ("Make the 7!"); the child taps
-/// + to stack unit blocks (and − to take them away) until the tower matches.
-/// When it does, the block does a happy bounce, a chime plays, and a new target
-/// appears. No timer, no score, no fail — overshooting is fine, just adjust.
+/// Make It — build a number from pieces. A target is shown ("Make the 13!");
+/// the child taps number pieces (+1, +2, +5, +10) to stack blocks, composing
+/// the exact target (− removes one, ↺ clears). When the tower matches it does a
+/// happy bounce, a chime plays, and a new target appears. Overshooting is fine
+/// — just take some away. No timer, no score, no fail.
 class MakeItScreen extends StatefulWidget {
   const MakeItScreen({super.key});
 
@@ -20,7 +21,8 @@ class MakeItScreen extends StatefulWidget {
 
 class _MakeItScreenState extends State<MakeItScreen>
     with SingleTickerProviderStateMixin {
-  static const int _max = 20;
+  static const int _max = 30;
+  static const List<int> _pieces = [1, 2, 5, 10];
   final _rng = math.Random();
   int _target = 5;
   int _current = 0;
@@ -30,7 +32,7 @@ class _MakeItScreenState extends State<MakeItScreen>
   @override
   void initState() {
     super.initState();
-    _target = 2 + _rng.nextInt(9); // 2..10
+    _target = 3 + _rng.nextInt(18); // 3..20
     _pop = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 600));
   }
@@ -41,9 +43,9 @@ class _MakeItScreenState extends State<MakeItScreen>
     super.dispose();
   }
 
-  Future<void> _add() async {
+  Future<void> _addN(int n) async {
     if (_won || _current >= _max) return;
-    setState(() => _current++);
+    setState(() => _current = math.min(_current + n, _max));
     await HapticsService.instance.light();
     await AudioService.instance.playPop();
     _check();
@@ -74,7 +76,7 @@ class _MakeItScreenState extends State<MakeItScreen>
     setState(() {
       int next;
       do {
-        next = 2 + _rng.nextInt(9);
+        next = 3 + _rng.nextInt(18);
       } while (next == _target);
       _target = next;
       _current = 0;
@@ -85,7 +87,6 @@ class _MakeItScreenState extends State<MakeItScreen>
   @override
   Widget build(BuildContext context) {
     final matched = _won;
-    final colour = NColors.numBlockColor(_current == 0 ? _target : _current);
     return Scaffold(
       appBar: const RoomHeader(
         title: 'Make It',
@@ -127,39 +128,42 @@ class _MakeItScreenState extends State<MakeItScreen>
                   ],
                 ),
               ),
-              // ── Controls: − , clear , + ──────────────────────────────
+              // ── Pieces to add (+1 +2 +5 +10) + remove / clear ────────
               Padding(
                 padding: const EdgeInsets.only(bottom: Gap.lg, top: Gap.xs),
                 child: Wrap(
                   alignment: WrapAlignment.center,
-                  spacing: Gap.md,
+                  spacing: Gap.sm,
                   runSpacing: Gap.sm,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     SoftButton(
-                      color: colour,
+                      color: NColors.inkSoft,
                       onTap: (_won || _current <= 0) ? null : _remove,
-                      width: 76,
-                      height: 76,
-                      radius: Radii.lg,
-                      child: const Icon(Icons.remove, size: 38),
+                      width: 58,
+                      height: 58,
+                      radius: Radii.md,
+                      child: const Icon(Icons.remove, size: 30),
                     ),
                     SoftButton(
                       color: NColors.inkSoft,
                       onTap: (_won || _current == 0) ? null : _clear,
-                      width: 60,
-                      height: 60,
+                      width: 58,
+                      height: 58,
                       radius: Radii.md,
                       child: const Icon(Icons.refresh_rounded, size: 26),
                     ),
-                    SoftButton(
-                      color: colour,
-                      onTap: (_won || _current >= _max) ? null : _add,
-                      width: 76,
-                      height: 76,
-                      radius: Radii.lg,
-                      child: const Icon(Icons.add, size: 38),
-                    ),
+                    const SizedBox(width: Gap.md),
+                    for (final p in _pieces)
+                      SoftButton(
+                        color: NColors.numBlockColor(p),
+                        onTap: (_won || _current >= _max) ? null : () => _addN(p),
+                        width: 68,
+                        height: 68,
+                        radius: Radii.lg,
+                        child: Text('+$p',
+                            style: const TextStyle(fontSize: 22)),
+                      ),
                   ],
                 ),
               ),
