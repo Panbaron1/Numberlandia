@@ -3,6 +3,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 class Prefs {
   static const _kSound = 'sound_enabled_v1';
   static const _kHaptics = 'haptics_enabled_v1';
+  static const _kBigBlocksBest = 'big_blocks_best_v1';
+
+  static Future<int> bigBlocksBest() async {
+    final p = await SharedPreferences.getInstance();
+    return p.getInt(_kBigBlocksBest) ?? 0;
+  }
+
+  static Future<void> setBigBlocksBest(int v) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setInt(_kBigBlocksBest, v);
+  }
 
   static Future<bool> soundEnabled() async {
     final p = await SharedPreferences.getInstance();

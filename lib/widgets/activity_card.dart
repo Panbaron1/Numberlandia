@@ -3,7 +3,8 @@ import '../theme.dart';
 
 class ActivityCard extends StatefulWidget {
   final String title;
-  final String assetImage;
+  final String? assetImage;
+  final Widget? art; // built art, used when assetImage is null
   final Color color;
   final bool live;
   final VoidCallback? onTap;
@@ -11,11 +12,13 @@ class ActivityCard extends StatefulWidget {
   const ActivityCard({
     super.key,
     required this.title,
-    required this.assetImage,
+    this.assetImage,
+    this.art,
     required this.color,
     required this.live,
     this.onTap,
-  });
+  }) : assert(assetImage != null || art != null,
+            'ActivityCard needs assetImage or art');
 
   @override
   State<ActivityCard> createState() => _ActivityCardState();
@@ -63,7 +66,8 @@ class _ActivityCardState extends State<ActivityCard> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(Gap.md),
-                      child: Image.asset(widget.assetImage, fit: BoxFit.contain),
+                      child: widget.art ??
+                          Image.asset(widget.assetImage!, fit: BoxFit.contain),
                     ),
                   ),
                 ),

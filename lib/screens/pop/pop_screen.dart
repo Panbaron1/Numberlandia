@@ -44,6 +44,7 @@ class _Nope {
 class _PopScreenState extends State<PopScreen>
     with SingleTickerProviderStateMixin {
   static const int _count = 8; // blocks on screen
+  static const int _goal = 5; // pops to fill the stars and change target
   static const double _mx = 0.09, _my = 0.10; // margins so blocks stay on-screen
   final _rng = math.Random();
   final List<_Bubble> _bubbles = [];
@@ -53,7 +54,8 @@ class _PopScreenState extends State<PopScreen>
   Duration _last = Duration.zero;
   int _seq = 0;
   int _target = 3;
-  int _popped = 0;
+  int _popped = 0; // lifetime pops — drives the speed ramp
+  int _stars = 0; // round progress toward the next target (0.._goal)
 
   double get _speed => (0.075 + _popped * 0.006).clamp(0.075, 0.24);
 
@@ -131,21 +133,28 @@ class _PopScreenState extends State<PopScreen>
       return;
     }
 
-    // correct — burst it and refill, then speed everything up a touch
+    // correct — burst it, fill a star, refill, then speed up a touch
     setState(() {
       _bubbles.remove(b);
       _booms.add(_Boom(b.id, at, NColors.numBlockColor(b.value)));
       _popped++;
+      _stars++;
       _bubbles.add(_spawn());
     });
     await HapticsService.instance.medium();
     await AudioService.instance.playPop();
 
-    final remaining = _bubbles.where((x) => x.value == _target).length;
-    if (remaining == 0) {
-      // cleared them all — celebrate and pick a new target
+    if (_stars >= _goal) {
+      // filled all five stars — celebrate and pick a new target to pop
       await AudioService.instance.playChime();
-      setState(() => _target = 1 + _rng.nextInt(9));
+      int t = _target;
+      while (t == _target) {
+        t = 1 + _rng.nextInt(9);
+      }
+      setState(() {
+        _target = t;
+        _stars = 0;
+      });
     }
     setState(() {
       _ensureTargets();
@@ -186,7 +195,7 @@ class _PopScreenState extends State<PopScreen>
         child: SafeArea(
           child: Column(
             children: [
-              _TargetBanner(target: _target, popped: _popped),
+              _TargetBanner(target: _target, stars: _stars),
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, c) {
@@ -235,8 +244,8 @@ class _PopScreenState extends State<PopScreen>
 
 class _TargetBanner extends StatelessWidget {
   final int target;
-  final int popped;
-  const _TargetBanner({required this.target, required this.popped});
+  final int stars;
+  const _TargetBanner({required this.target, required this.stars});
 
   @override
   Widget build(BuildContext context) {
@@ -270,16 +279,20 @@ class _TargetBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(width: Gap.sm),
+          // Five stars fill as you pop; full set = a new target block.
           Row(
             children: [
-              const Icon(Icons.auto_awesome_rounded,
-                  color: NColors.pop, size: 22),
-              const SizedBox(width: 4),
-              Text('$popped',
-                  style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: NColors.pop)),
+              for (int i = 0; i < _PopScreenState._goal; i++)
+                Padding(
+                  padding: const EdgeInsets.only(left: 4),
+                  child: Icon(
+                    i < stars
+                        ? Icons.star_rounded
+                        : Icons.star_outline_rounded,
+                    color: NColors.pop,
+                    size: 26,
+                  ),
+                ),
             ],
           ),
         ],

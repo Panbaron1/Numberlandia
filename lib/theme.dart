@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 class NColors {
@@ -18,6 +19,7 @@ class NColors {
   static const takeAway   = Color(0xFFFF6B6B); // coral red
   static const pop        = Color(0xFF12C2E9); // cyan
   static const makeIt     = Color(0xFF7E57C2); // deep violet
+  static const bigBlocks  = Color(0xFFFFA000); // amber (merge game)
 
   static const primary = million;
   static const zero    = Color(0xFFFFCC00); // gold
@@ -44,6 +46,32 @@ class NColors {
   static Color numBlockColor(int n) {
     if (n == 0) return numBlock[0];
     return numBlock[(n.abs() - 1) % 10 + 1];
+  }
+
+  // ── Big Blocks (2048-style merge game) ───────────────────────────────────
+  // One distinct colour per power-of-two tier (1, 2, 4 … 2048), so each tile
+  // is its own character. Indexed by exponent: mergeBlocks[log2(value)].
+  static const List<Color> mergeBlocks = [
+    Color(0xFFFF8A80), // 1    — coral
+    Color(0xFFFFAB40), // 2    — amber
+    Color(0xFF69F0AE), // 4    — spring green
+    Color(0xFF40C4FF), // 8    — sky blue
+    Color(0xFFF48FB1), // 16   — rose
+    Color(0xFFB388FF), // 32   — lavender
+    Color(0xFF1DE9B6), // 64   — aqua
+    Color(0xFF7986CB), // 128  — periwinkle
+    Color(0xFFFFA000), // 256  — amber gold
+    Color(0xFFFF6B6B), // 512  — coral red
+    Color(0xFF4F8EF7), // 1024 — blue
+    Color(0xFFFFD600), // 2048 — gold
+  ];
+
+  /// Block colour for a power-of-two tile value. Beyond 2048 it shifts hue.
+  static Color mergeBlockColor(int v) {
+    if (v < 1) return numBlock[0];
+    final e = (math.log(v) / math.ln2).round();
+    if (e >= 0 && e < mergeBlocks.length) return mergeBlocks[e];
+    return HSVColor.fromAHSV(1, (e * 32) % 360, 0.7, 0.95).toColor();
   }
 
   // Gradient stops used for the home-screen wordmark
