@@ -37,7 +37,7 @@ class _GradientGrainPainter extends CustomPainter {
   /// Soften a stop: lift well toward white (light backdrop), then a faint
   /// nudge toward the room accent.
   Color _soft(Color c) =>
-      Color.lerp(Color.lerp(c, Colors.white, 0.66)!, tint, 0.11)!;
+      Color.lerp(Color.lerp(c, Colors.white, 0.78)!, tint, 0.11)!;
 
   @override
   void paint(Canvas canvas, Size size) {

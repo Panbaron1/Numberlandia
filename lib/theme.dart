@@ -158,7 +158,7 @@ LinearGradient softGradient(Color c, {double topAlpha = 0.20, double botAlpha = 
 /// card's surface matches its room. Characters float on top of this.
 LinearGradient spectrumGradient(Color tint) {
   Color soft(Color c) =>
-      Color.lerp(Color.lerp(c, Colors.white, 0.66)!, tint, 0.11)!;
+      Color.lerp(Color.lerp(c, Colors.white, 0.78)!, tint, 0.11)!;
   return LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
