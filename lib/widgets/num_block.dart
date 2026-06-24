@@ -2,6 +2,25 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../theme.dart';
 
+/// Seven wears the rainbow — one colour per block, violet (top) to red
+/// (bottom), matching the Numberblocks character.
+const List<Color> kSevenRainbow = [
+  Color(0xFF9B59B6), // violet (top — the face block)
+  Color(0xFF5C6BC0), // indigo
+  Color(0xFF40C4FF), // blue
+  Color(0xFF34C759), // green
+  Color(0xFFFFD740), // yellow
+  Color(0xFFF7941E), // orange
+  Color(0xFFED1C24), // red (bottom)
+];
+
+/// Block colour for the square at [row] of value [n]. Seven is a rainbow;
+/// every other number uses its single character colour [base].
+Color _squareColor(int n, int row, Color base) =>
+    (n == 7 && row >= 0 && row < kSevenRainbow.length)
+        ? kSevenRainbow[row]
+        : base;
+
 /// An original "number character" — N unit squares packed into a compact,
 /// near-square block (like real number characters: 4 = 2×2, 9 = 3×3,
 /// 6 = 2×3, 8 = 2×4). Composite numbers form clean rectangles; primes form
@@ -112,8 +131,10 @@ class NumBlock extends StatelessWidget {
                   if (c > 0) SizedBox(width: gap),
                   _Square(
                     size: unit,
-                    color: color,
+                    color: _squareColor(n, r, color),
                     face: face && r == 0 && c == 0,
+                    // One has a single eye in the middle (like the character).
+                    oneEye: n == 1,
                     // Count on the bottom-right block (unless it's the face
                     // block, e.g. n == 1).
                     label: (r == lastRow && c == lastCol && !(r == 0 && c == 0))
@@ -153,12 +174,14 @@ class _Square extends StatelessWidget {
   final Color color;
   final String? label; // count, shown on the bottom-right square
   final bool face;     // eyes + smile, shown on the top-left square
+  final bool oneEye;   // single centred eye (used by One)
 
   const _Square({
     required this.size,
     required this.color,
     this.label,
     this.face = false,
+    this.oneEye = false,
   });
 
   @override
@@ -182,7 +205,7 @@ class _Square extends StatelessWidget {
         ],
       ),
       child: face
-          ? _Face(size: size)
+          ? _Face(size: size, eyes: oneEye ? 1 : 2)
           : (label != null
               ? Center(
                   child: Text(label!,
@@ -200,21 +223,25 @@ class _Square extends StatelessWidget {
 /// [paintNumberFace].
 class _Face extends StatelessWidget {
   final double size;
-  const _Face({required this.size});
+  final int eyes;
+  const _Face({required this.size, this.eyes = 2});
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(size: Size(size, size), painter: _FacePainter());
+    return CustomPaint(size: Size(size, size), painter: _FacePainter(eyes));
   }
 }
 
 class _FacePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) =>
-      paintNumberFace(canvas, Offset.zero, size.width);
+  final int eyes;
+  _FacePainter(this.eyes);
 
   @override
-  bool shouldRepaint(_FacePainter old) => false;
+  void paint(Canvas canvas, Size size) =>
+      paintNumberFace(canvas, Offset.zero, size.width, eyes: eyes);
+
+  @override
+  bool shouldRepaint(_FacePainter old) => old.eyes != eyes;
 }
 
 /// Zero is special — a hollow ring with a face, not a block.
@@ -345,7 +372,11 @@ class NumBlockPainter extends CustomPainter {
     }
 
     // Friendly face on the top-left cell when it's big enough to read.
-    if (cell >= 22) paintNumberFace(canvas, Offset(ox, oy), cell);
+    // One (a single cell) gets its single centred eye here too.
+    if (cell >= 22) {
+      paintNumberFace(canvas, Offset(ox, oy), cell,
+          eyes: rows * cols == 1 ? 1 : 2);
+    }
   }
 
   @override
@@ -357,14 +388,18 @@ class NumBlockPainter extends CustomPainter {
 /// and a warm brown smile. Drawn on a unit cell whose top-left corner is
 /// [cellTopLeft] and side length is [cell]. Used by every block (widget and
 /// canvas) and the times-tables array, so the face is identical everywhere.
-void paintNumberFace(Canvas canvas, Offset cellTopLeft, double cell) {
+void paintNumberFace(Canvas canvas, Offset cellTopLeft, double cell,
+    {int eyes = 2}) {
   final cx = cellTopLeft.dx + cell / 2;
   final eyeY = cellTopLeft.dy + cell * 0.40;
-  final eyeR = cell * 0.16;
-  final pupilR = cell * 0.09;
   final white = Paint()..color = Colors.white;
   final navy = Paint()..color = const Color(0xFF14213D);
-  for (final dx in [-cell * 0.20, cell * 0.20]) {
+  // One has a single, slightly larger eye in the middle; others have two.
+  final single = eyes == 1;
+  final eyeR = cell * (single ? 0.20 : 0.16);
+  final pupilR = cell * (single ? 0.11 : 0.09);
+  final offsets = single ? <double>[0.0] : <double>[-cell * 0.20, cell * 0.20];
+  for (final dx in offsets) {
     canvas.drawCircle(Offset(cx + dx, eyeY), eyeR, white);
     canvas.drawCircle(Offset(cx + dx, eyeY), pupilR, navy);
   }

@@ -20,6 +20,7 @@ class NColors {
   static const pop        = Color(0xFF12C2E9); // cyan
   static const makeIt     = Color(0xFF7E57C2); // deep violet
   static const bigBlocks  = Color(0xFFFFA000); // amber (merge game)
+  static const puzzle     = Color(0xFFEC407A); // rose (composition puzzle)
 
   static const primary = million;
   static const zero    = Color(0xFFFFCC00); // gold

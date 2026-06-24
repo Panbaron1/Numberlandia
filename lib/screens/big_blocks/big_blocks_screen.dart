@@ -246,45 +246,50 @@ class _Board extends StatelessWidget {
           ),
           child: Stack(
             children: [
-              // Background cells
-              for (int x = 0; x < n; x++)
-                for (int y = 0; y < n; y++)
-                  Positioned(
-                    left: pos(x),
-                    top: pos(y),
-                    width: cell,
-                    height: cell,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFECEEF7),
-                        borderRadius: BorderRadius.circular(cell * 0.16),
-                      ),
-                    ),
+              // Static background cells — their own layer, so the animated
+              // layer below holds only keyed tiles (no mixed keyed/un-keyed
+              // children, which is what left orphaned "ghost" tiles behind).
+              Positioned.fill(
+                child: Stack(
+                  children: [
+                    for (int x = 0; x < n; x++)
+                      for (int y = 0; y < n; y++)
+                        Positioned(
+                          left: pos(x),
+                          top: pos(y),
+                          width: cell,
+                          height: cell,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFECEEF7),
+                              borderRadius: BorderRadius.circular(cell * 0.16),
+                            ),
+                          ),
+                        ),
+                  ],
+                ),
+              ),
+              // Live tiles — isolated layer, only keyed AnimatedPositioned.
+              // RepaintBoundary stops the GPU leaving trails on slower devices.
+              Positioned.fill(
+                child: RepaintBoundary(
+                  child: Stack(
+                    children: [
+                      for (final t in notifier.tiles)
+                        AnimatedPositioned(
+                          key: ValueKey(t.id),
+                          duration: const Duration(milliseconds: 120),
+                          curve: Curves.easeInOut,
+                          left: pos(t.x),
+                          top: pos(t.y),
+                          width: cell,
+                          height: cell,
+                          child: _TileBlock(value: t.value, cell: cell),
+                        ),
+                    ],
                   ),
-              // Consumed tiles slide into the merge cell (paint under survivors).
-              for (final t in notifier.consumed)
-                AnimatedPositioned(
-                  key: ValueKey(t.id),
-                  duration: const Duration(milliseconds: 120),
-                  curve: Curves.easeInOut,
-                  left: pos(t.x),
-                  top: pos(t.y),
-                  width: cell,
-                  height: cell,
-                  child: _TileBlock(value: t.value, cell: cell),
                 ),
-              // Live tiles
-              for (final t in notifier.tiles)
-                AnimatedPositioned(
-                  key: ValueKey(t.id),
-                  duration: const Duration(milliseconds: 120),
-                  curve: Curves.easeInOut,
-                  left: pos(t.x),
-                  top: pos(t.y),
-                  width: cell,
-                  height: cell,
-                  child: _TileBlock(value: t.value, cell: cell),
-                ),
+              ),
             ],
           ),
         );

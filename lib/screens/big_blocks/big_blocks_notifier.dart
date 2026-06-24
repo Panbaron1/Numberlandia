@@ -4,7 +4,7 @@ import '../../data/prefs.dart';
 
 /// A single block on the board. [id] is stable for its lifetime so the UI can
 /// animate it (slide on move, pop on spawn/merge). A merge creates a *new* tile
-/// (new id) that pops, while the two consumed tiles slide into its cell.
+/// (new id) that pops in the survivor's cell; the two originals are removed.
 class Tile {
   final int id;
   int value;
@@ -33,10 +33,6 @@ class BigBlocksNotifier extends ChangeNotifier {
   int _idSeq = 0;
 
   late List<List<Tile?>> _grid;
-
-  /// Tiles consumed by a merge this move — kept for one render so they can be
-  /// seen sliding into the survivor's cell (they paint *under* it).
-  List<Tile> consumed = [];
 
   int score = 0;
   int best = 0;
@@ -71,7 +67,6 @@ class BigBlocksNotifier extends ChangeNotifier {
   // ── Game lifecycle ─────────────────────────────────────────────────────
   void _reset() {
     _grid = List.generate(size, (_) => List<Tile?>.filled(size, null));
-    consumed = [];
     score = 0;
     won = false;
     keepGoing = false;
@@ -95,7 +90,6 @@ class BigBlocksNotifier extends ChangeNotifier {
     final s = _undo;
     if (s == null) return;
     _grid = List.generate(size, (_) => List<Tile?>.filled(size, null));
-    consumed = [];
     for (final c in s.cells) {
       _grid[c[0]][c[1]] = Tile(_idSeq++, c[2], c[0], c[1]);
     }
@@ -152,7 +146,6 @@ class BigBlocksNotifier extends ChangeNotifier {
     final vx = v[0], vy = v[1];
 
     final snap = _snapshot();
-    consumed = [];
     final mergedThisMove = <Tile>{};
     bool moved = false;
 
@@ -189,10 +182,6 @@ class BigBlocksNotifier extends ChangeNotifier {
           mergedThisMove.add(merged);
           _grid[nx][ny] = merged;
           _grid[x][y] = null;
-          tile.x = nx;
-          tile.y = ny; // mover slides into the merge cell
-          consumed.add(tile);
-          consumed.add(next);
           score += merged.value;
           if (merged.value == target && !won) won = true;
           moved = true;
@@ -223,7 +212,6 @@ class BigBlocksNotifier extends ChangeNotifier {
   @visibleForTesting
   void debugSetBoard(List<List<int>> cells) {
     _grid = List.generate(size, (_) => List<Tile?>.filled(size, null));
-    consumed = [];
     score = 0;
     won = false;
     keepGoing = false;

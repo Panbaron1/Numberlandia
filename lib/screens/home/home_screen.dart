@@ -14,6 +14,7 @@ import '../doubling/doubling_screen.dart';
 import '../pop/pop_screen.dart';
 import '../make_it/make_it_screen.dart';
 import '../big_blocks/big_blocks_screen.dart';
+import '../puzzle/puzzle_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -111,7 +112,7 @@ class HomeScreen extends StatelessWidget {
                 child: LayoutBuilder(
                   builder: (context, c) {
                     const spacing = Gap.md;
-                    final rows = (11 / cols).ceil();
+                    final rows = (12 / cols).ceil();
                     final cellW = (c.maxWidth - (cols - 1) * spacing) / cols;
                     final cellH =
                         (c.maxHeight - (rows - 1) * spacing) / rows;
@@ -249,6 +250,33 @@ class HomeScreen extends StatelessWidget {
                       onTap: () => Navigator.push(context,
                           MaterialPageRoute(
                               builder: (_) => const BigBlocksScreen())),
+                    ),
+                    ActivityCard(
+                      title: 'Puzzle',
+                      color: NColors.puzzle,
+                      live: true,
+                      art: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const NumBlock(value: 4, unit: 14, showSign: false),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 4),
+                              child: Text('+',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
+                                      color: NColors.inkSoft)),
+                            ),
+                            const NumBlock(value: 5, unit: 14, showSign: false),
+                          ],
+                        ),
+                      ),
+                      onTap: () => Navigator.push(context,
+                          MaterialPageRoute(
+                              builder: (_) => const PuzzleScreen())),
                     ),
                       ],
                     );

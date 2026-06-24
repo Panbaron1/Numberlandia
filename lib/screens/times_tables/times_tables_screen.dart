@@ -189,10 +189,15 @@ class TimesArrayPainter extends CustomPainter {
     final oy = (size.height - gridH) / 2;
 
     final radius = Radius.circular(cell * 0.2);
-    final fill = Paint()..color = color;
     final rounded = cell > 5;
 
     for (int r = 0; r < rows; r++) {
+      // Seven's rows wear the rainbow (violet top → red bottom), like the
+      // numberblock character; every other count uses its single colour.
+      final rowColor = (rows == 7 && r < kSevenRainbow.length)
+          ? kSevenRainbow[r]
+          : color;
+      final fill = Paint()..color = rowColor;
       for (int c = 0; c < cols; c++) {
         final x = ox + c * (cell + gap);
         final y = oy + r * (cell + gap);
@@ -206,8 +211,9 @@ class TimesArrayPainter extends CustomPainter {
     }
 
     // Friendly face on the top-left cell when it's big enough to read.
+    // One (a single row) gets its single centred eye.
     if (cell >= 22) {
-      paintNumberFace(canvas, Offset(ox, oy), cell);
+      paintNumberFace(canvas, Offset(ox, oy), cell, eyes: rows == 1 ? 1 : 2);
     }
   }
 
